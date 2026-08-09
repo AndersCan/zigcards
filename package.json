@@ -1,0 +1,34 @@
+{
+  "name": "zigcards",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Flashcards for learning Zig, sourced from ziglings.",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --outfile=dist/app.js --format=iife --target=es2020",
+    "dev": "esbuild src/main.ts --bundle --outfile=dist/app.js --format=iife --target=es2020 --serve=localhost:8000 --servedir=.",
+    "build:watch": "esbuild src/main.ts --bundle --outfile=dist/app.js --format=iife --target=es2020 --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test",
+    "validate": "node scripts/validate.mjs",
+    "ready": "npm run typecheck && npm run validate && npm run build && npm test"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "lit-html": "^3.2.1",
+    "prismjs": "^1.29.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/prismjs": "^1.26.6",
+    "@varlock/bumpy": "^1.18.1",
+    "esbuild": "^0.25.0",
+    "typescript": "^7.0.2"
+  },
+  "allowScripts": {
+    "fsevents@2.3.2": true,
+    "esbuild@0.25.12": true
+  }
+}

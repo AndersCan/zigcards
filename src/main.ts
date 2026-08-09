@@ -1,0 +1,26 @@
+import type { Deck } from "./types.ts";
+import deckHello from "../decks/01-hello.ts";
+import deckValues from "../decks/02-values.ts";
+import deckControlFlow from "../decks/03-control-flow.ts";
+import deckFunctions from "../decks/04-functions.ts";
+import deckErrorsDefer from "../decks/05-errors-defer.ts";
+import deckSwitch from "../decks/06-switch-unreachable.ts";
+import deckEnumsStructs from "../decks/07-enums-structs.ts";
+import deckPointers from "../decks/08-pointers.ts";
+import deckOptionals from "../decks/09-optionals.ts";
+
+const decks: Deck[] = [
+  deckHello,
+  deckValues,
+  deckControlFlow,
+  deckFunctions,
+  deckErrorsDefer,
+  deckSwitch,
+  deckEnumsStructs,
+  deckPointers,
+  deckOptionals,
+];
+
+window.ZigCards = { decks };
+
+import "./app.ts";

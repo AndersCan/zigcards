@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ready:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+
+      # Content validation compares decks against the ziglings sources, which
+      # are not vendored. Clone them and apply the solution patches (heal).
+      - name: Prepare ziglings sources
+        run: |
+          git clone --depth 1 https://codeberg.org/ziglings/exercises.git /tmp/ziglings
+          mkdir -p /tmp/healed
+          for f in /tmp/ziglings/exercises/*.zig; do
+            n=$(basename "$f")
+            cp "$f" "/tmp/healed/$n"
+            p="/tmp/ziglings/patches/patches/${n%.zig}.patch"
+            if [ -f "$p" ]; then patch -s -i "$p" "/tmp/healed/$n"; fi
+          done
+
+      - name: Bumpy change check (PRs)
+        if: github.event_name == 'pull_request'
+        run: npx bumpy ci check --comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Ready (typecheck + validate + build + test)
+        run: npm run ready
+        env:
+          ZIGLINGS_DIR: /tmp/ziglings
+          ZIGLINGS_HEALED: /tmp/healed

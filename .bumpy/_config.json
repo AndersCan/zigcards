@@ -1,0 +1,5 @@
+{
+  "$schema": "https://bumpy.varlock.dev/config-schema.json",
+  "baseBranch": "main",
+  "changelog": "default"
+}
