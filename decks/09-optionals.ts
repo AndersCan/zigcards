@@ -28,7 +28,8 @@ fn deepThought() ?u8 {
 }`,
       back: "`result` is an optional `?u8`, which can't be assigned straight to a `u8`. Unwrap it with `orelse`, supplying a fallback for null: `const answer: u8 = result orelse 42;`.",
       backCode: `const answer: u8 = result orelse 42;`,
-      explanation: "An optional value must be guaranteed non-null before it can be used as its base type; `orelse` unwraps it or provides a default. It's like `catch` for error unions.",
+      explanation:
+        "An optional value must be guaranteed non-null before it can be used as its base type; `orelse` unwraps it or provides a default. It's like `catch` for error unions.",
     },
     {
       id: "op-002",
@@ -53,21 +54,23 @@ fn deepThought() ?u8 {
     return null;
 }`,
       back: "`The Ultimate Answer: 42.`",
-      explanation: "`deepThought()` returns `null`, so `orelse` discards the null and `answer` takes the fallback value 42.",
+      explanation:
+        "`deepThought()` returns `null`, so `orelse` discards the null and `answer` takes the fallback value 42.",
     },
     {
       id: "op-003",
       source: "ziglings 045_optionals",
       type: "concept",
-      front: "How do you express \"a `u32`, or possibly nothing\"?",
+      front: 'How do you express "a `u32`, or possibly nothing"?',
       code: `//     var foo: ?u32 = 10;
 //
 // Now foo can store a u32 integer OR null (a value storing
 // the cosmic horror of a value NOT EXISTING!)
 //
 //     foo = null;`,
-      back: "`?u32` — an optional type. It can hold a `u32` integer or `null`, the value representing \"not existing\".",
-      explanation: "The `?` before a type marks every value of that type as optional; before use, the optional must be proven non-null.",
+      back: '`?u32` — an optional type. It can hold a `u32` integer or `null`, the value representing "not existing".',
+      explanation:
+        "The `?` before a type marks every value of that type as optional; before use, the optional must be proven non-null.",
     },
     {
       id: "op-004",
@@ -77,7 +80,8 @@ fn deepThought() ?u8 {
       code: `//    var maybe_bad: Error!u32 = Error.Evil;
 //    var number: u32 = maybe_bad catch 0;`,
       back: "`catch` — both unwrap a value or supply a default: `foo orelse 2` and `maybe_bad catch 0`.",
-      explanation: "Optionals can hold a value or null, and error unions can hold a value or an error; `orelse` and `catch` play the same unwrap-or-default role.",
+      explanation:
+        "Optionals can hold a value or null, and error unions can hold a value or an error; `orelse` and `catch` play the same unwrap-or-default role.",
     },
     {
       id: "op-005",
@@ -102,7 +106,8 @@ fn deepThought() ?u8 {
 }`,
       back: "`e = e.tail orelse break;` — if the tail is null, leave the loop instead of unwrapping. The `tail` field must also be optional: `?*Elephant = null`.",
       backCode: `e = e.tail orelse break;`,
-      explanation: "Unlike `.?`, which would panic on a null tail, `orelse break` makes the walk end naturally at the last elephant.",
+      explanation:
+        "Unlike `.?`, which would panic on a null tail, `orelse break` makes the walk end naturally at the last elephant.",
     },
     {
       id: "op-006",
@@ -115,7 +120,8 @@ fn deepThought() ?u8 {
 //
 //     const foo = bar orelse unreachable;`,
       back: "`bar.?` is the same as `bar orelse unreachable` — unwrap the optional, or hit `unreachable` (which panics in debug builds) if it's null.",
-      explanation: "`.?` is the impatient unwrap: it guarantees the value exists, so use it only when null is truly impossible or you want a crash.",
+      explanation:
+        "`.?` is the impatient unwrap: it guarantees the value exists, so use it only when null is truly impossible or you want a crash.",
     },
     {
       id: "op-007",
@@ -174,7 +180,8 @@ fn visitElephants(first_elephant: *Elephant) void {
     }
 }`,
       back: "`Elephant A. Elephant B. Elephant C.`",
-      explanation: "A links to B and B to C; C's tail is null, so `orelse break` ends the loop after the third elephant — no circle needed.",
+      explanation:
+        "A links to B and B to C; C's tail is null, so `orelse break` ends the loop after the third elephant — no circle needed.",
     },
   ],
 };

@@ -15,7 +15,8 @@ const deck: Deck = {
 const Ops = enum { ??? };`,
       back: "The enum has no members, so `Ops.inc`, `Ops.pow`, and `Ops.dec` don't exist. Declare them: `const Ops = enum { dec, inc, pow };`.",
       backCode: `const Ops = enum { dec, inc, pow };`,
-      explanation: "An enum lets you give names to numeric values and store them in a set; the switch later relies on exactly these members.",
+      explanation:
+        "An enum lets you give names to numeric values and store them in a set; the switch later relies on exactly these members.",
     },
     {
       id: "es-002",
@@ -59,7 +60,8 @@ pub fn main() void {
     std.debug.print("\\n", .{});
 }`,
       back: "`1 2 3 9 8 7`",
-      explanation: "Three increments give 1, 2, 3; `Ops.pow` squares 3 to 9; two decrements give 8 then 7.",
+      explanation:
+        "Three increments give 1, 2, 3; `Ops.pow` squares 3 to 9; two decrements give 8 then 7.",
     },
     {
       id: "es-003",
@@ -77,7 +79,8 @@ pub fn main() void {
     green = 0x00ff00,
     blue = 0x0000ff,
 };`,
-      explanation: "Enums are really just a set of numbers: you can assign explicit values and pick the backing integer type (`u32`). `@intFromEnum(Color.blue)` converts a member back to its integer — the healed file spells it `@backingInt`, an older alias.",
+      explanation:
+        "Enums are really just a set of numbers: you can assign explicit values and pick the backing integer type (`u32`). `@intFromEnum(Color.blue)` converts a member back to its integer — the healed file spells it `@backingInt`, an older alias.",
     },
     {
       id: "es-004",
@@ -85,7 +88,8 @@ pub fn main() void {
       type: "concept",
       front: "What does the format string `{x:0>6}` do?",
       back: "Prints the value as lowercase hexadecimal (`x`), zero-padded (`0`) and right-aligned (`>`) to a width of 6.",
-      explanation: "`x` is the type, then a colon, then `0` is the padding character, `>` the alignment, and `6` the width — so `0xff` prints as `0000ff`.",
+      explanation:
+        "`x` is the type, then a colon, then `0` is the padding character, `>` the alignment, and `6` the width — so `0xff` prints as `0000ff`.",
     },
     {
       id: "es-005",
@@ -110,7 +114,8 @@ pub fn main() void {
   <span style="color: #00ff00">Green</span>
   <span style="color: #0000ff">Blue</span>
 </p>`,
-      explanation: "`{x:0>6}` zero-pads each hex value to 6 digits; each color is already 6 digits, so they print as-is.",
+      explanation:
+        "`{x:0>6}` zero-pads each hex value to 6 digits; each color is already 6 digits, so they print as-is.",
     },
     {
       id: "es-006",
@@ -129,7 +134,8 @@ pub fn main() void {
     experience: u32,
     health: u8,
 };`,
-      explanation: "A struct groups values under one type; each field is accessed with `.` and must exist before it can be read or assigned.",
+      explanation:
+        "A struct groups values under one type; each field is accessed with `.` and must exist before it can be read or assigned.",
     },
     {
       id: "es-007",
@@ -176,7 +182,8 @@ pub fn main() void {
     });
 }`,
       back: "`Your wizard has 90 health and 25 gold.`",
-      explanation: "Glorp starts at 100 health and 20 gold; the punch subtracts 10 and the loot adds 5, and field access `.` reads the updated values.",
+      explanation:
+        "Glorp starts at 100 health and 20 gold; the punch subtracts 10 and the loot adds 5, and field access `.` reads the updated values.",
     },
     {
       id: "es-008",
@@ -218,15 +225,17 @@ pub fn main() void {
         .health = 100,
         .experience = 20,
     };`,
-      explanation: "The array holds two `Character` structs and the loop prints both; leaving a slot `undefined` means reading values that were never set.",
+      explanation:
+        "The array holds two `Character` structs and the loop prints both; leaving a slot `undefined` means reading values that were never set.",
     },
     {
       id: "es-009",
       source: "ziglings 038_structs2",
       type: "concept",
       front: "What does Zig fill `undefined` memory with in debug mode?",
-      back: "The repeating pattern `0xAA` (10101010 in binary), so uninitialized locations show up as \"garbage\" values and are easy to spot while debugging.",
-      explanation: "In debug mode (the default), Zig writes 0xAA to all `undefined` locations to make them stand out; the exercise calls this pattern the repeating binary `10101010`.",
+      back: 'The repeating pattern `0xAA` (10101010 in binary), so uninitialized locations show up as "garbage" values and are easy to spot while debugging.',
+      explanation:
+        "In debug mode (the default), Zig writes 0xAA to all `undefined` locations to make them stand out; the exercise calls this pattern the repeating binary `10101010`.",
     },
     {
       id: "es-010",
@@ -285,7 +294,8 @@ pub fn main() void {
 }`,
       back: `Character 1 - G:20 H:100 XP:10
 Character 2 - G:10 H:100 XP:20`,
-      explanation: "The `for` loop iterates the two structs with an index (`num`), and `num + 1` makes the numbering 1-based.",
+      explanation:
+        "The `for` loop iterates the two structs with an index (`num`), and `num + 1` makes the numbering 1-based.",
     },
   ],
 };

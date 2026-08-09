@@ -21,11 +21,11 @@ The canonical source is the **ziglings** exercise repository:
 
 Three artifacts are authoritative and must be used as-is:
 
-| Artifact | Path | Use |
-| --- | --- | --- |
-| Broken exercises | `ziglings/exercises/NNN_name.zig` | The `code` shown on **fix** card fronts |
-| Solved exercises | `ziglings/patches/healed/` (or apply `patches/patches/NNN.patch`) | The `code`/`backCode` for **output** cards and fix-card backs |
-| Expected output | `rivendell/elrond.zig`, `const exercises = ...` block (`.output` field) | The **exact** answer for **output** cards |
+| Artifact         | Path                                                                    | Use                                                           |
+| ---------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Broken exercises | `ziglings/exercises/NNN_name.zig`                                       | The `code` shown on **fix** card fronts                       |
+| Solved exercises | `ziglings/patches/healed/` (or apply `patches/patches/NNN.patch`)       | The `code`/`backCode` for **output** cards and fix-card backs |
+| Expected output  | `rivendell/elrond.zig`, `const exercises = ...` block (`.output` field) | The **exact** answer for **output** cards                     |
 
 Every card MUST carry a `source` field citing the exercise, e.g. `ziglings 009_if`.
 
@@ -88,7 +88,7 @@ Register a new deck by adding an import + entry in `src/main.ts`. The deck's
 ### Rules (non-negotiable)
 
 1. **No invented Zig.** Every snippet is copied from the exercise or healed
-   files. You may *trim* a snippet to the relevant lines, but never alter,
+   files. You may _trim_ a snippet to the relevant lines, but never alter,
    repair, or extend the code. If the exercise code must be shown intact to
    stay meaningful, show it intact.
 2. **Exact outputs.** `output`-type answers quote the elrond answer key
@@ -196,7 +196,7 @@ the exercise or the Zig Language Reference before writing.
   `errdefer` runs only when the scope returns an error.
 - **Optionals** `?T`: `null` is the empty value; `orelse` gives a default;
   `if (opt) |v| … else …` unwraps safely; `opt.?` unwraps and **panics**
-  ("attempt to use null value") on null. Values coerce *into* optionals
+  ("attempt to use null value") on null. Values coerce _into_ optionals
   implicitly; unwrapping never is.
 - **Error unions** `!T`: `try` unwraps (propagates errors), `catch` handles
   (`x catch 0`, or `catch |err| …`), `if (eu) |v| … else |err|` handles both

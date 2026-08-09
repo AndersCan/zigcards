@@ -32,7 +32,8 @@ pub fn main() void {
     std.debug.print("Hello world!\\n", .{});
 }`,
       back: "`Hello world!`",
-      explanation: "`std.debug.print` takes a format string and an anonymous list literal of arguments; `{s}` formats a string, `{d}` an integer.",
+      explanation:
+        "`std.debug.print` takes a format string and an anonymous list literal of arguments; `{s}` formats a string, `{d}` an integer.",
     },
     {
       id: "hl-003",
@@ -44,16 +45,18 @@ pub fn main() void {
 pub fn main() void {
     std.debug.print("Standard Library.\\n", .{});
 }`,
-      back: "The import needs a binding: `const std = @import(\"std\");`",
-      explanation: "`@import` returns the imported module as a value; by convention you bind it to a `const` with the same name.",
+      back: 'The import needs a binding: `const std = @import("std");`',
+      explanation:
+        "`@import` returns the imported module as a value; by convention you bind it to a `const` with the same name.",
     },
     {
       id: "hl-004",
       source: "ziglings 002_std",
       type: "concept",
-      front: "Why must imports be `const` (e.g. `const std = @import(\"std\");`)?",
+      front: 'Why must imports be `const` (e.g. `const std = @import("std");`)?',
       back: "Imports are only usable at compile time, and `const` values are evaluated at compile time.",
-      explanation: "Zig evaluates `const` initializers at comptime; a `var` binding wouldn't make sense for something that only exists during compilation.",
+      explanation:
+        "Zig evaluates `const` initializers at comptime; a `var` binding wouldn't make sense for something that only exists during compilation.",
     },
   ],
 };

@@ -1,0 +1,27 @@
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@0.2.8
+  vite-plus: 0.2.8
+  vitest: 4.1.10
+  "@vitest/browser-playwright": 4.1.10
+  "@varlock/bumpy": ^1.18.1
+  playwright: ^1.54.0
+
+overrides:
+  vite: "catalog:"
+  vitest: "catalog:"
+
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: "*"
+    vitest: "*"
+
+allowBuilds:
+  esbuild: true
+
+minimumReleaseAgeExclude:
+  - "@mantaq/core@0.0.2"
+  - "@mantaq/sugar@0.0.2"
+  - "@mantaq/utils@0.0.1"

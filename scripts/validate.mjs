@@ -21,7 +21,7 @@ for (const f of deckFiles) {
 }
 
 const key = JSON.parse(
-  fs.readFileSync(new URL("./data/ziglings-outputs.json", import.meta.url), "utf8")
+  fs.readFileSync(new URL("./data/ziglings-outputs.json", import.meta.url), "utf8"),
 );
 const keyByFile = new Map(key.map((e) => [e.file, e.output]));
 
@@ -42,7 +42,10 @@ const norm = (s) => (s || "").replace(/`/g, "").replace(/\s+/g, " ").trim().toLo
 function lineSet(text) {
   const set = new Set();
   for (const raw of text.split("\n")) {
-    const line = raw.replace(/\/\/[^\n]*/, "").replace(/\s+/g, "").trim();
+    const line = raw
+      .replace(/\/\/[^\n]*/, "")
+      .replace(/\s+/g, "")
+      .trim();
     if (line) set.add(line);
   }
   return set;
@@ -73,7 +76,8 @@ for (const deck of decks) {
   for (const c of deck.cards) {
     cardCount++;
     for (const f of ["id", "source", "type", "front", "back"]) {
-      if (typeof c[f] !== "string" || !c[f].trim()) errors.push(`${deck.id}/${c.id}: missing '${f}'`);
+      if (typeof c[f] !== "string" || !c[f].trim())
+        errors.push(`${deck.id}/${c.id}: missing '${f}'`);
     }
     if (!types.has(c.type)) errors.push(`${deck.id}/${c.id}: bad type '${c.type}'`);
     if (ids.has(c.id)) errors.push(`duplicate card id '${c.id}'`);
@@ -98,7 +102,7 @@ for (const deck of decks) {
             const missing = [...deckLines].filter((l) => !srcLines.has(l));
             if (missing.length) {
               errors.push(
-                `${deck.id}/${c.id}: '${f}' contains lines not in ${file}: ${missing.slice(0, 4).join(" | ")}`
+                `${deck.id}/${c.id}: '${f}' contains lines not in ${file}: ${missing.slice(0, 4).join(" | ")}`,
               );
             }
           }
@@ -110,7 +114,7 @@ for (const deck of decks) {
           const inBack = norm(c.back).includes(norm(expected));
           if (!inBack) {
             errors.push(
-              `${deck.id}/${c.id}: output mismatch. expected "${expected}" got back "${c.back}"`
+              `${deck.id}/${c.id}: output mismatch. expected "${expected}" got back "${c.back}"`,
             );
           }
         } else {

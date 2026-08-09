@@ -28,7 +28,8 @@ n = n + 5;
 const pi: u32 = 314159;
 
 const negative_eleven: i8 = -11;`,
-      explanation: "`const` cannot be reassigned; `u` types are unsigned (0–255 for `u8`); `i8` is signed (−128–127).",
+      explanation:
+        "`const` cannot be reassigned; `u` types are unsigned (0–255 for `u8`); `i8` is signed (−128–127).",
     },
     {
       id: "vl-002",
@@ -81,7 +82,8 @@ pub fn main() void {
 some_primes[0] = 2;
 const fourth = some_primes[3];
 const length = some_primes.len;`,
-      explanation: "`const` arrays can't be modified. `[index]` reads or writes one element; `.len` gives the length.",
+      explanation:
+        "`const` arrays can't be modified. `[index]` reads or writes one element; `.len` gives the length.",
     },
     {
       id: "vl-005",
@@ -103,7 +105,8 @@ pub fn main() void {
     });
 }`,
       back: "`First: 2, Fourth: 7, Length: 8`",
-      explanation: "`some_primes[0] = 2` replaced the 1; `[3]` is the 4th element (value 7); `.len` is 8.",
+      explanation:
+        "`some_primes[0] = 2` replaced the 1; `[3]` is the 4th element (value 7); `.len` is 8.",
     },
     {
       id: "vl-006",
@@ -118,7 +121,8 @@ const leet = ???;
 const bit_pattern_unit = ???;
 const len = ???;`,
       back: "`const leet = le ++ et;` gives `{ 1, 3, 3, 7 }`. `const bit_pattern_unit = [_]u8{ 1, 0, 0, 1 };` and `const len = 3 * bit_pattern_unit.len;` produce the 12-bit pattern.",
-      explanation: "`++` concatenates two arrays into a new array; `[_]u8{...}` lets Zig infer the length from the literal.",
+      explanation:
+        "`++` concatenates two arrays into a new array; `[_]u8{...}` lets Zig infer the length from the literal.",
     },
     {
       id: "vl-007",
@@ -126,7 +130,8 @@ const len = ???;`,
       type: "concept",
       front: "When is the `++` array operator evaluated?",
       back: "Only at compile time — `++` on arrays is evaluated during compilation (comptime), not at runtime.",
-      explanation: "ziglings calls `++` the one array operator; it's a comptime feature that produces a new array type.",
+      explanation:
+        "ziglings calls `++` the one array operator; it's a comptime feature that produces a new array type.",
     },
     {
       id: "vl-008",
@@ -140,8 +145,9 @@ const d: u8 = ziggy[???];
 const major = "Major";
 const tom = "Tom";
 const major_tom = major ??? tom;`,
-      back: "`ziggy[4]` is the `'d'` (0-based: s-t-a-r-d), and `major ++ \" \" ++ tom` builds `\"Major Tom\"`.",
-      explanation: "Strings are arrays of bytes, so `[]` indexing and `++` work on them like on any array.",
+      back: '`ziggy[4]` is the `\'d\'` (0-based: s-t-a-r-d), and `major ++ " " ++ tom` builds `"Major Tom"`.',
+      explanation:
+        "Strings are arrays of bytes, so `[]` indexing and `++` work on them like on any array.",
     },
     {
       id: "vl-009",
@@ -155,9 +161,11 @@ const major_tom = major ??? tom;`,
       id: "vl-010",
       source: "ziglings 006_strings",
       type: "concept",
-      front: "Why does `std.debug.print(\"d={u} {s}\\n\", .{ d, major_tom })` print `d=d Major Tom` instead of `d=100`?",
+      front:
+        'Why does `std.debug.print("d={u} {s}\\n", .{ d, major_tom })` print `d=d Major Tom` instead of `d=100`?',
       back: "Because `{u}` formats the byte as a UTF-8 character (the letter `d`) and `{s}` formats the string. With `{d}` it would print the decimal value `100`.",
-      explanation: "`{u}` = Unicode character, `{s}` = string, `{d}` = decimal integer, `{}` = default.",
+      explanation:
+        "`{u}` = Unicode character, `{s}` = string, `{d}` = decimal integer, `{}` = default.",
     },
     {
       id: "vl-011",
@@ -170,7 +178,8 @@ const major_tom = major ??? tom;`,
     \\\\Jamming good with Andrew Kelley
     \\\\And the Spiders from Mars
 ;`,
-      explanation: "Multiline string literals have no escape sequences and run line-by-line; each line must start with `\\\\`.",
+      explanation:
+        "Multiline string literals have no escape sequences and run line-by-line; each line must start with `\\\\`.",
     },
     {
       id: "vl-012",
@@ -190,7 +199,8 @@ lang[2] = letters[???];
 
 std.debug.print("Program in {s}!\\n", .{lang});`,
       back: "`x` must be `var` (it's reassigned). Then `lang[1] = letters[x]` with `x = 3`, and `x = 5; lang[2] = letters[5]` — indexing `letters` at 1, 3, 5 gives 'Z', 'i', 'g'.",
-      explanation: "`usize` is the idiomatic index type; `undefined` lets you declare an array without initializing it.",
+      explanation:
+        "`usize` is the idiomatic index type; `undefined` lets you declare an array without initializing it.",
     },
   ],
 };

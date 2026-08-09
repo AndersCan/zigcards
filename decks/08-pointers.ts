@@ -25,7 +25,8 @@ const deck: Deck = {
 }`,
       back: "`num2 = num1_pointer.*;` — `.*` dereferences the pointer to read the value it points to (5).",
       backCode: `num2 = num1_pointer.*;`,
-      explanation: "`&num1` is a reference (a pointer) to the memory holding num1; `num1_pointer.*` is the value at that address. Dereferencing copies the value out.",
+      explanation:
+        "`&num1` is a reference (a pointer) to the memory holding num1; `num1_pointer.*` is the value at that address. Dereferencing copies the value out.",
     },
     {
       id: "pt-002",
@@ -47,7 +48,8 @@ pub fn main() void {
     std.debug.print("num1: {}, num2: {}\\n", .{ num1, num2 });
 }`,
       back: "`num1: 5, num2: 5`",
-      explanation: "`num2` is assigned a copy of the value stored at `num1_pointer`; the pointer itself is never assigned, only dereferenced.",
+      explanation:
+        "`num2` is assigned a copy of the value stored at `num1_pointer`; the pointer itself is never assigned, only dereferenced.",
     },
     {
       id: "pt-003",
@@ -62,7 +64,8 @@ pub fn main() void {
 }`,
       back: "`a` is `const`, so `&a` is a `*const u8` — a pointer to immutable data. Claiming it as `*u8` would promise the value is mutable, which Zig forbids.",
       backCode: `const b: *const u8 = &a;`,
-      explanation: "Variable pointers and constant pointers are different types: you can always make a const pointer to a mutable value (var), but never a mutable pointer to an immutable value (const).",
+      explanation:
+        "Variable pointers and constant pointers are different types: you can always make a const pointer to a mutable value (var), but never a mutable pointer to an immutable value (const).",
     },
     {
       id: "pt-004",
@@ -82,7 +85,8 @@ pub fn main() void {
       id: "pt-005",
       source: "ziglings 041_pointers3",
       type: "fix",
-      front: "Define pointer `p` so it can point to EITHER `foo` or `bar` AND change the value it points to.",
+      front:
+        "Define pointer `p` so it can point to EITHER `foo` or `bar` AND change the value it points to.",
       code: `pub fn main() void {
     var foo: u8 = 5;
     var bar: u8 = 10;
@@ -99,7 +103,8 @@ pub fn main() void {
 }`,
       back: "`var p: *u8 = undefined;` — `*u8` because it must write through the pointer, and `var` because `p` itself gets repointed to both `foo` and `bar`.",
       backCode: `var p: *u8 = undefined;`,
-      explanation: "`p.* += 1` mutates the pointed-to value, and `p = &bar` later changes what the pointer points to — so the pointer needs to be a mutable `var`.",
+      explanation:
+        "`p.* += 1` mutates the pointed-to value, and `p = &bar` later changes what the pointer points to — so the pointer needs to be a mutable `var`.",
     },
     {
       id: "pt-006",
@@ -121,17 +126,20 @@ pub fn main() void {
     std.debug.print("foo={}, bar={}\\n", .{ foo, bar });
 }`,
       back: "`foo=6, bar=11`",
-      explanation: "First `p` points at `foo` and increments it to 6; then `p` is repointed at `bar` and increments it to 11.",
+      explanation:
+        "First `p` points at `foo` and increments it to 6; then `p` is repointed at `bar` and increments it to 11.",
     },
     {
       id: "pt-007",
       source: "ziglings 041_pointers3",
       type: "concept",
-      front: "In `var p: *u8`, what does the `var` control — the pointer itself or the value it points to?",
+      front:
+        "In `var p: *u8`, what does the `var` control — the pointer itself or the value it points to?",
       back: "The pointer itself: whether `p` may be changed to point at something else. The `*u8` part controls whether the pointed-to value can change.",
       code: `//     const p3: *u8 = &unlocked;
 //     var   p4: *u8 = &unlocked;`,
-      explanation: "Both p3 and p4 can change the value at `unlocked`, but only the `var` p4 can be repointed — the pointer's mutability and the pointee's mutability are separate.",
+      explanation:
+        "Both p3 and p4 can change the value at `unlocked`, but only the `var` p4 can be repointed — the pointer's mutability and the pointee's mutability are separate.",
     },
     {
       id: "pt-008",
@@ -147,7 +155,8 @@ fn makeFive(x: *u8) void {
       backCode: `fn makeFive(x: *u8) void {
     x.* = 5; // fix me!
 }`,
-      explanation: "Passing `&num` lets `makeFive` change `num` itself. Pass by reference when you want to change the pointed-to value; otherwise pass the value.",
+      explanation:
+        "Passing `&num` lets `makeFive` change `num` itself. Pass by reference when you want to change the pointed-to value; otherwise pass the value.",
     },
     {
       id: "pt-009",
@@ -183,7 +192,8 @@ fn makeFive(x: *u8) void {
     x.* = 5; // fix me!
 }`,
       back: "`num: 5, more_nums: 1 1 5 1`",
-      explanation: "`makeFive` sets `num` to 5, and `&more_nums[2]` targets the third array element, leaving the other three ones untouched.",
+      explanation:
+        "`makeFive` sets `num` to 5, and `&more_nums[2]` targets the third array element, leaving the other three ones untouched.",
     },
     {
       id: "pt-010",
@@ -210,7 +220,8 @@ fn makeFive(x: *u8) void {
 }`,
       back: "`printCharacter(&glorp);` — the function takes a `*Character`, so pass the address of the struct, not the struct itself.",
       backCode: `printCharacter(&glorp);`,
-      explanation: "Inside the function, fields are accessed directly through the pointer (`c.gold`, not `c.*.gold`), and `c.mentor` links Glorp to its mentor.",
+      explanation:
+        "Inside the function, fields are accessed directly through the pointer (`c.gold`, not `c.*.gold`), and `c.mentor` links Glorp to its mentor.",
     },
     {
       id: "pt-011",
@@ -284,7 +295,8 @@ fn printCharacter(c: *Character) void {
 }`,
       back: `Wizard (G:10 H:100 XP:20)
   Mentor: Wizard (G:10000 H:100 XP:2340)`,
-      explanation: "Glorp's `health` defaults to 100 because struct fields can have default values, and the optional `mentor` pointer recursively prints the Mighty Krodor.",
+      explanation:
+        "Glorp's `health` defaults to 100 because struct fields can have default values, and the optional `mentor` pointer recursively prints the Mighty Krodor.",
     },
     {
       id: "pt-012",
@@ -321,7 +333,8 @@ pub fn main() void {
     elephantA.tail = &elephantB;
     // (Please link Elephant B's tail to Elephant C here!)
     elephantB.tail = &elephantC;`,
-      explanation: "Each `tail` is a `*Elephant`, so `&elephantB` and `&elephantC` need real variables to point at; the `visited` flag stops the walk from looping forever.",
+      explanation:
+        "Each `tail` is a `*Elephant`, so `&elephantB` and `&elephantC` need real variables to point at; the `visited` flag stops the walk from looping forever.",
     },
     {
       id: "pt-013",
@@ -368,7 +381,8 @@ fn visitElephants(first_elephant: *Elephant) void {
     }
 }`,
       back: "`Elephant A. Elephant B. Elephant C.`",
-      explanation: "The walk follows `tail` pointers through the circle, marking each elephant visited; it stops when it reaches A again because A is already visited.",
+      explanation:
+        "The walk follows `tail` pointers through the circle, marking each elephant visited; it stops when it reaches A again because A is already visited.",
     },
   ],
 };

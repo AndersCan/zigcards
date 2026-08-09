@@ -1,34 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<meta name="theme-color" content="#0d1117"/>
-<meta name="description" content="ZigCards — flashcards for learning Zig, built from ziglings."/>
-<title>ZigCards</title>
-<link rel="stylesheet" href="css/app.css"/>
-</head>
-<body>
-<div id="app">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d1117" />
+    <meta
+      name="description"
+      content="ZigCards — flashcards for learning Zig, built from ziglings."
+    />
+    <title>ZigCards</title>
+    <link rel="stylesheet" href="css/app.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header id="topbar">
+        <button id="btn-back" class="tb-btn" aria-label="Back" hidden>&larr;</button>
+        <div class="tb-main">
+          <div id="tb-title">ZigCards</div>
+          <div id="tb-sub" class="tb-sub"></div>
+        </div>
+        <div id="tb-count" class="tb-count" hidden></div>
+        <div id="tb-progress-wrap" class="tb-progress-wrap" hidden>
+          <div id="tb-progress" class="tb-progress"></div>
+        </div>
+      </header>
 
-  <header id="topbar">
-    <button id="btn-back" class="tb-btn" aria-label="Back" hidden>&larr;</button>
-    <div class="tb-main">
-      <div id="tb-title">ZigCards</div>
-      <div id="tb-sub" class="tb-sub"></div>
+      <main id="screen-home" class="screen"></main>
+      <main id="screen-review" class="screen screen-review" hidden></main>
+      <main id="screen-done" class="screen" hidden></main>
     </div>
-    <div id="tb-count" class="tb-count" hidden></div>
-    <div id="tb-progress-wrap" class="tb-progress-wrap" hidden>
-      <div id="tb-progress" class="tb-progress"></div>
-    </div>
-  </header>
 
-  <main id="screen-home" class="screen"></main>
-  <main id="screen-review" class="screen screen-review" hidden></main>
-  <main id="screen-done" class="screen" hidden></main>
-
-</div>
-
-<script src="dist/app.js"></script>
-</body>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>

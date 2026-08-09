@@ -29,9 +29,10 @@ pub fn main() void {
 
     std.debug.print("\\n", .{});
 }`,
-      back: "`switch` must be exhaustive, and `c` is a `u8` whose other values (like 42) have no prong. Add `else => std.debug.print(\"?\", .{}),`.",
+      back: '`switch` must be exhaustive, and `c` is a `u8` whose other values (like 42) have no prong. Add `else => std.debug.print("?", .{}),`.',
       backCode: `else => std.debug.print("?", .{}),`,
-      explanation: "The `else` prong matches every value not explicitly listed, making the switch exhaustive.",
+      explanation:
+        "The `else` prong matches every value not explicitly listed, making the switch exhaustive.",
     },
     {
       id: "sw-002",
@@ -94,7 +95,8 @@ pub fn main() void {
 }`,
       back: "Add the `else` prong returning an exclamation mark: `else => '!',` — a switch used as an expression must also be exhaustive.",
       backCode: `else => '!',`,
-      explanation: "Here `switch` is an expression: each prong produces the value assigned to `real_char`.",
+      explanation:
+        "Here `switch` is an expression: each prong produces the value assigned to `real_char`.",
     },
     {
       id: "sw-004",
@@ -130,7 +132,8 @@ pub fn main() void {
     std.debug.print("\\n", .{});
 }`,
       back: "`ZIG!`",
-      explanation: "26 → 'Z', 9 → 'I', 7 → 'G', and 42 hits the `else` prong → '!'. `{c}` formats the value as a character.",
+      explanation:
+        "26 → 'Z', 9 → 'I', 7 → 'G', and 42 hits the `else` prong → '!'. `{c}` formats the value as a character.",
     },
     {
       id: "sw-005",
@@ -164,7 +167,8 @@ pub fn main() void {
 }`,
       back: "Add `else => unreachable` — we know only 1, 2, 3 occur, and reaching any other value is a bug.",
       backCode: `else => unreachable,`,
-      explanation: "`unreachable` tells the compiler a branch can never execute, satisfying exhaustiveness; in Debug builds, actually reaching it panics.",
+      explanation:
+        "`unreachable` tells the compiler a branch can never execute, satisfying exhaustiveness; in Debug builds, actually reaching it panics.",
     },
     {
       id: "sw-006",
@@ -206,7 +210,8 @@ pub fn main() void {
       type: "concept",
       front: "What is `unreachable` in Zig?",
       back: "A statement telling the compiler that reaching that branch is an error and should never happen.",
-      explanation: "It lets a switch be exhaustive with a prong you believe is dead code. In Debug builds, actually reaching it is a panic.",
+      explanation:
+        "It lets a switch be exhaustive with a prong you believe is dead code. In Debug builds, actually reaching it is a panic.",
     },
     {
       id: "sw-008",
@@ -242,9 +247,10 @@ fn numberMaybeFail(n: u8) MyNumberError!u8 {
     if (n < 4) return MyNumberError.TooSmall;
     return n;
 }`,
-      back: "Add a prong for `TooSmall` that prints `<4. `: `MyNumberError.TooSmall => std.debug.print(\"<4. \", .{}),`",
+      back: 'Add a prong for `TooSmall` that prints `<4. `: `MyNumberError.TooSmall => std.debug.print("<4. ", .{}),`',
       backCode: `MyNumberError.TooSmall => std.debug.print("<4. ", .{}),`,
-      explanation: "`if (eu) |value| else |err|` captures both arms of an error union; the error arm switches over each error-set member.",
+      explanation:
+        "`if (eu) |value| else |err|` captures both arms of an error union; the error arm switches over each error-set member.",
     },
     {
       id: "sw-009",
@@ -309,7 +315,8 @@ fn getNumber() NumError!u32 {
 }`,
       back: "Unwrap it with `try`: `const my_num: u32 = try getNumber();` — on error, `try` propagates it to `main`, which returns `!void`.",
       backCode: `const my_num: u32 = try getNumber();`,
-      explanation: "`getNumber` returns `NumError!u32`; `try` yields the plain `u32` or returns the error up the call chain.",
+      explanation:
+        "`getNumber` returns `NumError!u32`; `try` yields the plain `u32` or returns the error up the call chain.",
     },
     {
       id: "sw-011",
@@ -335,7 +342,8 @@ fn getNumber() NumError!u32 {
     return 42;
 }`,
       back: "`my_num=42`",
-      explanation: "`getNumber` returns 42 — the error branch is guarded by `if (false)` — so `try` yields 42.",
+      explanation:
+        "`getNumber` returns 42 — the error branch is guarded by `if (false)` — so `try` yields 42.",
     },
   ],
 };

@@ -50,7 +50,8 @@ pub fn main() void {
 if (number_error == MyNumberError.TooSmall) {
     std.debug.print("<4. ", .{});
 }`,
-      explanation: "Errors are named values from an error set; you compare them with `==` like any other value.",
+      explanation:
+        "Errors are named values from an error set; you compare them with `==` like any other value.",
     },
     {
       id: "er-002",
@@ -93,7 +94,8 @@ fn numberFail(n: u8) MyNumberError {
     return MyNumberError.TooFour;
 }`,
       back: "`2<4. 3<4. 4=4. 5>4. 6>4.`",
-      explanation: "2 and 3 are below 4, 4 is equal, and 5 and 6 are above. `numberFail` returns one of the three named errors, each checked by `==`.",
+      explanation:
+        "2 and 3 are below 4, 4 is equal, and 5 and 6 are above. `numberFail` returns one of the three named errors, each checked by `==`.",
     },
     {
       id: "er-003",
@@ -113,7 +115,8 @@ pub fn main() void {
 }`,
       back: "An error union: `MyNumberError!u8` — a value that is either a `u8` or an error from the `MyNumberError` set.",
       backCode: `var my_number: MyNumberError!u8 = 5;`,
-      explanation: "`MyErrorSet!T` reads \"error set or T\". The binding starts as the number `5` and is later reassigned to an error.",
+      explanation:
+        '`MyErrorSet!T` reads "error set or T". The binding starts as the number `5` and is later reassigned to an error.',
     },
     {
       id: "er-004",
@@ -142,7 +145,8 @@ fn addTwenty(n: u32) ??? {
       backCode: `const b: u32 = addTwenty(4) catch 22;
 
 fn addTwenty(n: u32) MyNumberError!u32 {`,
-      explanation: "`catch <default>` replaces any error with the default value, so the result type stays `u32`.",
+      explanation:
+        "`catch <default>` replaces any error with the default value, so the result type stays `u32`.",
     },
     {
       id: "er-005",
@@ -168,13 +172,15 @@ fn addTwenty(n: u32) MyNumberError!u32 {
     }
 }`,
       back: "`a=64, b=22`",
-      explanation: "`addTwenty(44)` succeeds (44+20=64). `addTwenty(4)` returns `TooSmall` (4 < 5), so `catch 22` supplies the default.",
+      explanation:
+        "`addTwenty(44)` succeeds (44+20=64). `addTwenty(4)` returns `TooSmall` (4 < 5), so `catch 22` supplies the default.",
     },
     {
       id: "er-006",
       source: "ziglings 024_errors4",
       type: "fix",
-      front: "What should `fixTooSmall` do to turn TooSmall into 10 and pass through any other error?",
+      front:
+        "What should `fixTooSmall` do to turn TooSmall into 10 and pass through any other error?",
       code: `fn fixTooSmall(n: u32) MyNumberError!u32 {
     return detectProblems(n) ???;
 }
@@ -194,7 +200,8 @@ fn detectProblems(n: u32) MyNumberError!u32 {
         return err;
     };
 }`,
-      explanation: "`catch |err|` captures the error value so you can branch on it, instead of blindly substituting a default.",
+      explanation:
+        "`catch |err|` captures the error value so you can branch on it, instead of blindly substituting a default.",
     },
     {
       id: "er-007",
@@ -248,7 +255,8 @@ fn detectProblems(n: u32) MyNumberError!u32 {
     return n;
 }`,
       back: "`a=20, b=14, c=10`",
-      explanation: "44 → TooBig → `fixTooBig` returns 20. 14 is in range so it passes through as 14. 4 → TooSmall → `fixTooSmall` returns 10.",
+      explanation:
+        "44 → TooBig → `fixTooBig` returns 20. 14 is in range so it passes through as 14. 4 → TooSmall → `fixTooSmall` returns 10.",
     },
     {
       id: "er-008",
@@ -302,7 +310,8 @@ fn detect(n: u32) MyNumberError!u32 {
     return n;
 }`,
       back: "`a=0, b=19, c=0`",
-      explanation: "44 > 20 → TooBig, so `addFive` fails and `catch 0` yields 0. 14 is in range → 19. 4 < 10 → TooSmall → 0.",
+      explanation:
+        "44 > 20 → TooBig, so `addFive` fails and `catch 0` yields 0. 14 is in range → 19. 4 < 10 → TooSmall → 0.",
     },
     {
       id: "er-010",
@@ -315,10 +324,11 @@ pub fn main() void {
     std.debug.print("Two\\n", .{});
     std.debug.print("One ", .{});
 }`,
-      back: "Defer the first print so it runs when `main` exits: `defer std.debug.print(\"Two\\n\", .{});`",
+      back: 'Defer the first print so it runs when `main` exits: `defer std.debug.print("Two\\n", .{});`',
       backCode: `defer std.debug.print("Two\\n", .{});
 std.debug.print("One ", .{});`,
-      explanation: "A `defer` runs after the enclosing scope exits, so `One ` prints first and `Two` prints last.",
+      explanation:
+        "A `defer` runs after the enclosing scope exits, so `One ` prints first and `Two` prints last.",
     },
     {
       id: "er-011",
@@ -332,13 +342,15 @@ pub fn main() void {
     std.debug.print("One ", .{});
 }`,
       back: "`One Two`",
-      explanation: "The `defer` is held until `main` exits, so `One ` prints first and `Two` prints at scope exit.",
+      explanation:
+        "The `defer` is held until `main` exits, so `One ` prints first and `Two` prints at scope exit.",
     },
     {
       id: "er-012",
       source: "ziglings 028_defer2",
       type: "fix",
-      front: "`printAnimal` can `return` in four different places. How do you print the closing parenthesis every time?",
+      front:
+        "`printAnimal` can `return` in four different places. How do you print the closing parenthesis every time?",
       code: `fn printAnimal(animal: u8) void {
     std.debug.print("(", .{});
 
@@ -359,9 +371,10 @@ pub fn main() void {
 
     std.debug.print("Unknown", .{});
 }`,
-      back: "Defer it: `defer std.debug.print(\") \", .{});` — it runs at function exit no matter which `return` is taken.",
+      back: 'Defer it: `defer std.debug.print(") ", .{});` — it runs at function exit no matter which `return` is taken.',
       backCode: `defer std.debug.print(") ", .{});`,
-      explanation: "A `defer` runs when the scope exits, so even a function with many early returns runs the deferred call exactly once, at the end.",
+      explanation:
+        "A `defer` runs when the scope exits, so even a function with many early returns runs the deferred call exactly once, at the end.",
     },
     {
       id: "er-013",
@@ -413,7 +426,8 @@ fn calculateTheUltimateQuestionOfLife() u32 {
     return x;
 }`,
       back: "`(Goat) (Cat) (Dog) (Dog) (Goat) (Unknown) done.\nAnswer to everything? 42`",
-      explanation: "Each `printAnimal` defers its closing paren to scope exit. The three `defer`s run in reverse order (÷10 → +11 → ×2), turning 100 into 42.",
+      explanation:
+        "Each `printAnimal` defers its closing paren to scope exit. The three `defer`s run in reverse order (÷10 → +11 → ×2), turning 100 into 42.",
     },
     {
       id: "er-014",
@@ -421,7 +435,8 @@ fn calculateTheUltimateQuestionOfLife() u32 {
       type: "concept",
       front: "When a block has multiple `defer` statements, in what order do they run?",
       back: "In reverse order — the last `defer` declared runs first.",
-      explanation: "ziglings: \"When there are multiple defers in a single block, they are executed in reverse order.\" It matters when e.g. deinitializing containers whose elements must be deinitialized first.",
+      explanation:
+        'ziglings: "When there are multiple defers in a single block, they are executed in reverse order." It matters when e.g. deinitializing containers whose elements must be deinitialized first.',
     },
     {
       id: "er-015",
@@ -453,9 +468,10 @@ fn increaseNumber(n: u32) MyErr!u32 {
 
     return n + 1;
 }`,
-      back: "Use `errdefer`: `errdefer std.debug.print(\"failed!\\n\", .{});` — it runs only if the scope returns an error.",
+      back: 'Use `errdefer`: `errdefer std.debug.print("failed!\\n", .{});` — it runs only if the scope returns an error.',
       backCode: `errdefer std.debug.print("failed!\\n", .{});`,
-      explanation: "`errdefer` is like `defer`, but fires only when the enclosing scope exits with an error.",
+      explanation:
+        "`errdefer` is like `defer`, but fires only when the enclosing scope exits with an error.",
     },
     {
       id: "er-016",
@@ -501,7 +517,8 @@ fn increaseNumber(n: u32) MyErr!u32 {
     return n + 1;
 }`,
       back: "`Getting number...got 5. Getting number...failed!`",
-      explanation: "First call succeeds (4 → increaseNumber → 5). Second call: `increaseNumber` fails (counter > 0), so the `errdefer` fires before `main`'s `catch return` quits.",
+      explanation:
+        "First call succeeds (4 → increaseNumber → 5). Second call: `increaseNumber` fails (counter > 0), so the `errdefer` fires before `main`'s `catch return` quits.",
     },
   ],
 };

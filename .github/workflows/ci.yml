@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: voidzero-dev/setup-vp@v1
         with:
           node-version: "24"
-          cache: npm
+          cache: true
 
-      - run: npm ci
+      - run: vp install
 
       # Content validation compares decks against the ziglings sources, which
       # are not vendored. Clone them and apply the solution patches (heal).
@@ -34,15 +34,15 @@ jobs:
 
       - name: Bumpy change check (PRs)
         if: github.event_name == 'pull_request'
-        run: npx bumpy ci check --comment
+        run: vp exec bumpy ci check --comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright (Chromium for vitest browser mode)
+        run: vp exec playwright install --with-deps chromium
 
-      - name: Ready (typecheck + validate + build + test)
-        run: npm run ready
+      - name: Ready (check + validate + build + test)
+        run: vp run ready
         env:
           ZIGLINGS_DIR: /tmp/ziglings
           ZIGLINGS_HEALED: /tmp/healed

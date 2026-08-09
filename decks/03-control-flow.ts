@@ -28,7 +28,8 @@ pub fn main() void {
     } else {
         std.debug.print("Foo is not 42!\\n", .{});
     }`,
-      explanation: "Zig does not coerce numbers to booleans — the `if` condition must be exactly a `bool`, so you need a comparison operator.",
+      explanation:
+        "Zig does not coerce numbers to booleans — the `if` condition must be exactly a `bool`, so you need a comparison operator.",
     },
     {
       id: "cf-002",
@@ -65,7 +66,8 @@ pub fn main() void {
 }`,
       back: "`const price: u8 = if (discount) 17 else 20;` — `if` is an expression, so it can produce a value.",
       backCode: `    const price: u8 = if (discount) 17 else 20;`,
-      explanation: "When `discount` is true the expression evaluates to `17`, otherwise `20`; both branches have the same type so the result fits `u8`.",
+      explanation:
+        "When `discount` is true the expression evaluates to `17`, otherwise `20`; both branches have the same type so the result fits `u8`.",
     },
     {
       id: "cf-004",
@@ -82,7 +84,8 @@ pub fn main() void {
     std.debug.print("With the discount, the price is \${}.\\n", .{price});
 }`,
       back: "`With the discount, the price is $17.`",
-      explanation: "`if (discount) 17 else 20` evaluates to 17 since `discount` is true; the `$` in the format string is literal and `{}` formats the price.",
+      explanation:
+        "`if (discount) 17 else 20` evaluates to 17 since `discount` is true; the `$` in the format string is literal and `{}` formats the price.",
     },
     {
       id: "cf-005",
@@ -108,7 +111,8 @@ pub fn main() void {
 
         n *= 2;
     }`,
-      explanation: "Like `if`, the `while` condition must be a `bool`; comparing `n` to the target keeps the loop going until `n == 1024`.",
+      explanation:
+        "Like `if`, the `while` condition must be a `bool`; comparing `n` to the target keeps the loop going until `n == 1024`.",
     },
     {
       id: "cf-006",
@@ -129,7 +133,8 @@ pub fn main() void {
     std.debug.print("n={}\\n", .{n});
 }`,
       back: "`2 4 8 16 32 64 128 256 512 n=1024`",
-      explanation: "`n` doubles each iteration (2→1024); the loop prints each value before doubling and stops once `n == 1024`, then the final print shows `n=1024`.",
+      explanation:
+        "`n` doubles each iteration (2→1024); the loop prints each value before doubling and stops once `n == 1024`, then the final print shows `n=1024`.",
     },
     {
       id: "cf-007",
@@ -151,7 +156,8 @@ pub fn main() void {
       backCode: `    while (n < 1000) : (n *= 2) {
         std.debug.print("{} ", .{n});
     }`,
-      explanation: "The continue expression doubles `n` each time the loop restarts, producing the same 2…512 sequence as the previous exercise.",
+      explanation:
+        "The continue expression doubles `n` each time the loop restarts, producing the same 2…512 sequence as the previous exercise.",
     },
     {
       id: "cf-008",
@@ -177,7 +183,8 @@ pub fn main() void {
         if (n % 5 == 0) continue;
         std.debug.print("{} ", .{n});
     }`,
-      explanation: "`%` is the modulo operator (remainder after division); `continue` restarts the loop early, and the continue expression runs even after a `continue`.",
+      explanation:
+        "`%` is the modulo operator (remainder after division); `continue` restarts the loop early, and the continue expression runs even after a `continue`.",
     },
     {
       id: "cf-009",
@@ -198,7 +205,8 @@ pub fn main() void {
     std.debug.print("\\n", .{});
 }`,
       back: "`1 2 4 7 8 11 13 14 16 17 19`",
-      explanation: "Numbers divisible by 3 or 5 are skipped, so only the numbers 1–20 that aren't multiples of 3 or 5 print.",
+      explanation:
+        "Numbers divisible by 3 or 5 are skipped, so only the numbers 1–20 that aren't multiples of 3 or 5 print.",
     },
     {
       id: "cf-010",
@@ -220,7 +228,8 @@ pub fn main() void {
       backCode: `    while (true) : (n += 1) {
         if (n == 4) break;
     }`,
-      explanation: "`break` exits the loop immediately; the continue expression does NOT run when the loop stops because of a `break`, so `n` stays at 4.",
+      explanation:
+        "`break` exits the loop immediately; the continue expression does NOT run when the loop stops because of a `break`, so `n` stays at 4.",
     },
     {
       id: "cf-011",
@@ -239,7 +248,8 @@ pub fn main() void {
     std.debug.print("n={}\\n", .{n});
 }`,
       back: "`n=4`",
-      explanation: "`n` increments to 4, then `break` exits before the continue expression runs again, so the printed value is 4.",
+      explanation:
+        "`n` increments to 4, then `break` exits before the continue expression runs again, so the printed value is 4.",
     },
     {
       id: "cf-012",
@@ -267,7 +277,8 @@ pub fn main() void {
         if (scene == 's') std.debug.print(":-(  ", .{});
         if (scene == 'n') std.debug.print(":-|  ", .{});
     }`,
-      explanation: "`for (items) |item|` runs the body once per element, binding `item` to the current element.",
+      explanation:
+        "`for (items) |item|` runs the body once per element, binding `item` to the current element.",
     },
     {
       id: "cf-013",
@@ -290,7 +301,8 @@ pub fn main() void {
     std.debug.print("The End.\\n", .{});
 }`,
       back: "`A Dramatic Story: :-)  :-)  :-(  :-|  :-)  The End.`",
-      explanation: "The story is `h h s n h`, and each letter picks an emoticon: `h` → `:-)`, `s` → `:-(`, `n` → `:-|`.",
+      explanation:
+        "The story is `h h s n h`, and each letter picks an emoticon: `h` → `:-)`, `s` → `:-(`, `n` → `:-|`.",
     },
     {
       id: "cf-014",
@@ -317,7 +329,8 @@ pub fn main() void {
         const place_value = std.math.pow(u32, 2, i_u32);
         value += place_value * bit;
     }`,
-      explanation: "A `for` over multiple objects captures one value per object; here `i` is the index, converted to `u32` with `@intCast` so `std.math.pow` can use it.",
+      explanation:
+        "A `for` over multiple objects captures one value per object; here `i` is the index, converted to `u32` with `@intCast` so `std.math.pow` can use it.",
     },
     {
       id: "cf-015",
@@ -339,7 +352,8 @@ pub fn main() void {
     std.debug.print("The value of bits '1101': {}.\\n", .{value});
 }`,
       back: "`The value of bits '1101': 13.`",
-      explanation: "Bits are little-endian: bit 0 (1), bit 2 (1), and bit 3 (1) contribute 1 + 4 + 8 = 13.",
+      explanation:
+        "Bits are little-endian: bit 0 (1), bit 2 (1), and bit 3 (1) contribute 1 + 4 + 8 = 13.",
     },
     {
       id: "cf-016",
@@ -363,7 +377,8 @@ pub fn main() void {
     std.debug.print("\\n", .{});
 }`,
       back: "`1, 2, Fizz, 4, Buzz, Fizz, 7, 8, Fizz, Buzz, 11, Fizz, 13, 14, FizzBuzz, 16,`",
-      explanation: "Classic FizzBuzz: multiples of 3 print `Fizz`, multiples of 5 print `Buzz`, multiples of both print `FizzBuzz`; the `and`/`not` guard prints the number when neither applies.",
+      explanation:
+        "Classic FizzBuzz: multiples of 3 print `Fizz`, multiples of 5 print `Buzz`, multiples of both print `FizzBuzz`; the `and`/`not` guard prints the number when neither applies.",
     },
   ],
 };
