@@ -22,14 +22,15 @@ catalogs:
 overrides:
   vite: npm:@voidzero-dev/vite-plus-core@0.2.8
   vitest: 4.1.10
+  '@mantaq/core': 0.0.3
 
 importers:
 
   .:
     dependencies:
       '@mantaq/core':
-        specifier: 0.0.2
-        version: 0.0.2
+        specifier: 0.0.3
+        version: 0.0.3
       '@mantaq/sugar':
         specifier: 0.0.2
         version: 0.0.2
@@ -82,8 +83,8 @@ packages:
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
 
-  '@mantaq/core@0.0.2':
-    resolution: {integrity: sha512-xvNY115av0uTHHOaj0hyqjh3zefSsfq3ukQb7GGn9dXK9/tBYqwg4C2O/3OtK1m9f+iAZBlGclqIKvSM4FD3EA==}
+  '@mantaq/core@0.0.3':
+    resolution: {integrity: sha512-BV7Jd39oj0R4UnD9ZU/lunUDR+6mPGzelmGCdo7uRH5TRUAyFFydOnacGiR82E811JP9vW6/U0IUv8lk9XeGXQ==}
 
   '@mantaq/sugar@0.0.2':
     resolution: {integrity: sha512-AOwcy5978/GeXgD8yMzLINqEQfvSPbkfGWdo8rs3PVBi28bdwoQkTXopN37VSNTx6xmjB03EBV/d3scgi7vziQ==}
@@ -1057,13 +1058,13 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
-  '@mantaq/core@0.0.2':
+  '@mantaq/core@0.0.3':
     dependencies:
       '@mantaq/utils': 0.0.1
 
   '@mantaq/sugar@0.0.2':
     dependencies:
-      '@mantaq/core': 0.0.2
+      '@mantaq/core': 0.0.3
       '@mantaq/utils': 0.0.1
 
   '@mantaq/utils@0.0.1': {}

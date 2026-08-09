@@ -9,6 +9,7 @@ catalog:
 overrides:
   vite: "catalog:"
   vitest: "catalog:"
+  "@mantaq/core": "0.0.3"
 
 peerDependencyRules:
   allowAny:
@@ -22,6 +23,6 @@ allowBuilds:
   esbuild: true
 
 minimumReleaseAgeExclude:
-  - "@mantaq/core@0.0.2"
+  - "@mantaq/core@0.0.3"
   - "@mantaq/sugar@0.0.2"
   - "@mantaq/utils@0.0.1"
