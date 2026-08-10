@@ -22,9 +22,6 @@ import {
   inputs,
   internal,
   openDeck,
-  pointerDown,
-  pointerMove,
-  pointerUp,
   reset,
   resetProgress,
   restartDeck,
@@ -35,7 +32,6 @@ import {
 } from "./refs.ts";
 import type { AppContext, DeckIndex } from "./types.ts";
 
-export const SWIPE_THRESHOLD = 70;
 export const GRADE_FLYOUT_MS = 240;
 
 export type AppActor = ReturnType<typeof createAppActor>;
@@ -82,18 +78,6 @@ export function createAppActor(options: AppMachineOptions) {
         return { state: home };
       };
 
-      const trackDown = (e: { x: number; y: number }, context: Context<AppContext>) => {
-        context.set({ ...context.get(), drag: { x: e.x, y: e.y, dx: 0 } });
-        return {};
-      };
-
-      const trackMove = (e: { x: number }, context: Context<AppContext>) => {
-        const ctx = context.get();
-        if (!ctx.drag) return {};
-        context.set({ ...ctx, drag: { ...ctx.drag, dx: e.x - ctx.drag.x } });
-        return {};
-      };
-
       m.on(home, openDeck, (e, { context }) => {
         if (!decks[e.deckId]) return {};
         context.set(startSession(context.get(), e.deckId));
@@ -134,24 +118,6 @@ export function createAppActor(options: AppMachineOptions) {
         const ctx = context.get();
         context.set({ ...clearSession(ctx), progress: {}, stats: emptyStats() });
         return { state: home };
-      });
-
-      m.on(reviewFront, pointerDown, (e, { context }) => trackDown(e, context));
-      m.on(reviewBack, pointerDown, (e, { context }) => trackDown(e, context));
-      m.on(reviewFront, pointerMove, (e, { context }) => trackMove(e, context));
-      m.on(reviewBack, pointerMove, (e, { context }) => trackMove(e, context));
-
-      m.on(reviewFront, pointerUp, (_, { context }) => {
-        context.set({ ...context.get(), drag: null });
-        return {};
-      });
-
-      m.on(reviewBack, pointerUp, (_, { context }) => {
-        const ctx = context.get();
-        const dx = ctx.drag?.dx ?? 0;
-        context.set({ ...ctx, drag: null });
-        if (Math.abs(dx) < SWIPE_THRESHOLD) return {};
-        return gradeKnown(context, dx > 0) ? { state: reviewGrading } : {};
       });
 
       m.effect(reviewGrading, (input) =>

@@ -21,18 +21,11 @@ export interface Stats {
   unknown: number;
 }
 
-export interface DragState {
-  x: number;
-  y: number;
-  dx: number;
-}
-
 export interface AppContext {
   session: SessionState | null;
   lastGrade: { known: boolean } | null;
   progress: Record<string, CardProgress>;
   stats: Stats;
-  drag: DragState | null;
 }
 
 export type DeckIndex = Record<string, Deck>;

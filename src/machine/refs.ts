@@ -16,9 +16,6 @@ export const backToHome = event("BACK_TO_HOME")();
 export const restartDeck = event("RESTART_DECK")();
 export const resetProgress = event("RESET_PROGRESS")();
 export const reset = event("RESET")();
-export const pointerDown = event("POINTER_DOWN")<{ x: number; y: number }>();
-export const pointerMove = event("POINTER_MOVE")<{ x: number }>();
-export const pointerUp = event("POINTER_UP")();
 
 export const inputs = [
   openDeck,
@@ -28,9 +25,6 @@ export const inputs = [
   restartDeck,
   resetProgress,
   reset,
-  pointerDown,
-  pointerMove,
-  pointerUp,
 ] as const;
 
 export const internal = [gradeDone] as const;

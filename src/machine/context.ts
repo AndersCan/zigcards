@@ -6,7 +6,7 @@ export function emptyStats(): Stats {
 }
 
 export function initialContext(): AppContext {
-  return { session: null, lastGrade: null, progress: {}, stats: emptyStats(), drag: null };
+  return { session: null, lastGrade: null, progress: {}, stats: emptyStats() };
 }
 
 export function startSession(ctx: AppContext, deckId: string): AppContext {
@@ -29,7 +29,7 @@ export function advanceSession(ctx: AppContext): AppContext {
 }
 
 export function clearSession(ctx: AppContext): AppContext {
-  return { ...ctx, session: null, lastGrade: null, drag: null };
+  return { ...ctx, session: null, lastGrade: null };
 }
 
 export function restartSession(ctx: AppContext): AppContext {

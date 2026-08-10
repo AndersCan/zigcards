@@ -130,7 +130,6 @@ describe("persistence", () => {
             lastGrade: null,
             progress: persisted.cards,
             stats: persisted.stats,
-            drag: null,
           }
         : undefined,
     });

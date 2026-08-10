@@ -246,11 +246,6 @@ body {
   position: relative;
   overflow: hidden;
   cursor: pointer;
-  touch-action: none;
-  will-change: transform;
-  transition:
-    transform 220ms ease,
-    opacity 220ms ease;
 }
 .card.revealed {
   border-color: #3a4358;
@@ -612,6 +607,30 @@ code.inline {
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* tighten chrome on narrow phones so code and content get the width back */
+@media (max-width: 480px) {
+  .screen {
+    padding: 10px;
+  }
+  .screen-review {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+  .card {
+    padding: 14px 12px;
+    border-radius: 14px;
+  }
+  pre.code {
+    padding: 10px;
+    border-radius: 8px;
+  }
+  pre.code code {
+    font-size: 12px;
+  }
+  .deck-row {
+    padding: 12px 10px;
   }
 }
 

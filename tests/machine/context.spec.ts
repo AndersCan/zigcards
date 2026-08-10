@@ -37,7 +37,6 @@ describe("context helpers", () => {
       lastGrade: null,
       progress: {},
       stats: emptyStats(),
-      drag: null,
     });
   });
 
@@ -64,14 +63,12 @@ describe("context helpers", () => {
     expect(ctx.session?.idx).toBe(1);
   });
 
-  it("clearSession nulls session, lastGrade and drag", () => {
+  it("clearSession nulls session and lastGrade", () => {
     let ctx = inSession(initialContext());
     ctx = gradeCard(ctx, false);
-    ctx = { ...ctx, drag: { x: 1, y: 2, dx: 3 } };
     const cleared = clearSession(ctx);
     expect(cleared.session).toBeNull();
     expect(cleared.lastGrade).toBeNull();
-    expect(cleared.drag).toBeNull();
   });
 
   it("restartSession keeps the deck but resets counters and idx", () => {

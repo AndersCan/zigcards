@@ -11,9 +11,6 @@ import {
   flip,
   grade,
   openDeck,
-  pointerDown,
-  pointerMove,
-  pointerUp,
   reset,
   resetProgress,
   restartDeck,
@@ -21,7 +18,6 @@ import {
   type AppContext,
   type AppEvent,
   type DeckIndex,
-  type DragState,
 } from "./machine/index.ts";
 import type { Card, CardType, Deck } from "./types.ts";
 
@@ -84,33 +80,7 @@ function boot(): void {
 }
 
 function onMachineChange(snap: Snapshot<AppContext>, prev: Snapshot<AppContext>): void {
-  const a = snap.context;
-  const b = prev.context;
-  const dragOnly =
-    snap.path[0] === prev.path[0] &&
-    a.progress === b.progress &&
-    a.stats === b.stats &&
-    a.session === b.session &&
-    a.lastGrade === b.lastGrade &&
-    a.drag !== b.drag;
-  if (dragOnly) {
-    applyDrag(a.drag);
-    return;
-  }
   renderApp(snap, prev);
-}
-
-function applyDrag(drag: DragState | null): void {
-  if (!actor) return;
-  if (actor.snapshot().path[0] !== "review.back") return;
-  const card = $("card");
-  if (!drag) {
-    card.style.transform = "";
-    card.style.opacity = "";
-    return;
-  }
-  card.style.transform = `translateX(${drag.dx}px) rotate(${drag.dx * 0.04}deg)`;
-  card.style.opacity = String(Math.min(1, 1 - Math.abs(drag.dx) / 500));
 }
 
 function setTopbar(title: string | null, sub: string | null, idx: number, len: number): void {
@@ -216,11 +186,8 @@ function reviewTemplate(v: ReviewView): TemplateResult {
       class="card ${revealed ? "revealed" : ""}"
       tabindex="0"
       role="button"
-      aria-label="Flashcard. Tap to flip, then swipe or use the buttons to grade."
+      aria-label="Flashcard. Tap to flip, then use the buttons to grade."
       style="${flyOut}"
-      @pointerdown=${onPointerDown}
-      @pointermove=${onPointerMove}
-      @pointerup=${onPointerUp}
       @click=${onCardTap}
     >
       <div class="card-inner">
@@ -289,21 +256,7 @@ function renderReview(snap: Snapshot<AppContext>, prev: Snapshot<AppContext>): v
   );
 }
 
-/* ---------- swipe / tap ---------- */
-
-function onPointerDown(e: PointerEvent): void {
-  const card = e.currentTarget as HTMLElement;
-  send(pointerDown.create({ x: e.clientX, y: e.clientY }));
-  if (card.setPointerCapture) card.setPointerCapture(e.pointerId);
-}
-
-function onPointerMove(e: PointerEvent): void {
-  send(pointerMove.create({ x: e.clientX }));
-}
-
-function onPointerUp(): void {
-  send(pointerUp.create());
-}
+/* ---------- card interaction ---------- */
 
 function onCardTap(): void {
   send(flip.create());

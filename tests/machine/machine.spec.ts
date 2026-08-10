@@ -7,9 +7,6 @@ import {
   flip,
   grade,
   openDeck,
-  pointerDown,
-  pointerMove,
-  pointerUp,
   reset,
   resetProgress,
   restartDeck,
@@ -224,56 +221,5 @@ describe("zigcards machine", () => {
     expect(snap.path).toEqual(["review.back"]);
     expect(snap.context.session?.deckId).toBe("d1");
     expect(snap.done).toBeUndefined();
-  });
-
-  describe("pointer / swipe", () => {
-    it("tracks a drag in context and clears it on release", () => {
-      const { actor } = makeApp();
-      actor.send(openDeck.create({ deckId: "d1" }));
-      actor.send(flip.create());
-      actor.send(pointerDown.create({ x: 100, y: 200 }));
-      expect(actor.snapshot().context.drag).toEqual({ x: 100, y: 200, dx: 0 });
-      actor.send(pointerMove.create({ x: 130 }));
-      expect(actor.snapshot().context.drag?.dx).toBe(30);
-      actor.send(pointerUp.create());
-      expect(actor.snapshot().context.drag).toBeNull();
-      expect(matches(actor, "review.back")).toBe(true);
-    });
-
-    it("a swipe past the threshold grades the card to the right", () => {
-      const { actor, clock } = makeApp();
-      actor.send(openDeck.create({ deckId: "d1" }));
-      actor.send(flip.create());
-      actor.send(pointerDown.create({ x: 100, y: 200 }));
-      actor.send(pointerMove.create({ x: 220 }));
-      actor.send(pointerUp.create());
-      expect(matches(actor, "review.grading")).toBe(true);
-      expect(actor.snapshot().context.stats.reviews).toBe(1);
-      expect(actor.snapshot().context.session?.known).toBe(1);
-      clock.advance(GRADE_FLYOUT_MS);
-      expect(matches(actor, "review.front")).toBe(true);
-    });
-
-    it("a swipe to the left grades as unknown", () => {
-      const { actor } = makeApp();
-      actor.send(openDeck.create({ deckId: "d1" }));
-      actor.send(flip.create());
-      actor.send(pointerDown.create({ x: 300, y: 200 }));
-      actor.send(pointerMove.create({ x: 120 }));
-      actor.send(pointerUp.create());
-      expect(matches(actor, "review.grading")).toBe(true);
-      expect(actor.snapshot().context.session?.unknown).toBe(1);
-    });
-
-    it("a short swipe does not grade", () => {
-      const { actor } = makeApp();
-      actor.send(openDeck.create({ deckId: "d1" }));
-      actor.send(flip.create());
-      actor.send(pointerDown.create({ x: 100, y: 200 }));
-      actor.send(pointerMove.create({ x: 130 }));
-      actor.send(pointerUp.create());
-      expect(matches(actor, "review.back")).toBe(true);
-      expect(actor.snapshot().context.stats.reviews).toBe(0);
-    });
   });
 });

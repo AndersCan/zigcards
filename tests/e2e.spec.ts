@@ -1,12 +1,6 @@
 import { beforeAll, beforeEach, expect, test } from "vite-plus/test";
-import { commands, userEvent } from "vite-plus/test/browser";
+import { userEvent } from "vite-plus/test/browser";
 import { bootstrapApp, resetUi, waitFor } from "./helpers";
-
-declare module "vitest/browser" {
-  interface BrowserCommands {
-    swipe: (selector: string, dx: number) => Promise<void>;
-  }
-}
 
 beforeAll(bootstrapApp);
 beforeEach(resetUi);
@@ -57,13 +51,6 @@ test("flip reveals the back, then grading advances", async () => {
   expect(knownBox.y + knownBox.height).toBeLessThanOrEqual(844);
 
   await userEvent.click(el("#btn-known"));
-  await waitFor(() => el("#tb-count").textContent === "2/4");
-});
-
-test("swipe right grades as known", async () => {
-  await userEvent.click(el(".deck-row"));
-  await userEvent.click(el("#card"));
-  await commands.swipe("#card", 160);
   await waitFor(() => el("#tb-count").textContent === "2/4");
 });
 

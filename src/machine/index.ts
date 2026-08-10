@@ -17,7 +17,6 @@ export * from "./persistence.ts";
 export {
   createAppActor,
   GRADE_FLYOUT_MS,
-  SWIPE_THRESHOLD,
   type AppActor,
   type AppEvent,
   type AppMachineOptions,

@@ -3,6 +3,8 @@
 Flashcards for learning Zig, built from the [ziglings](https://codeberg.org/ziglings/exercises)
 exercise set. Mobile-first, dark, thumb-friendly, works offline.
 
+**Try it live:** <https://anderscan.github.io/zigcards/>
+
 **The content is not invented.** Every card is grounded in a specific ziglings
 exercise (cite it in the `source` field). Code snippets are copied verbatim
 from the exercises, and every expected output is checked against ziglings'

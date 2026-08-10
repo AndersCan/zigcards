@@ -1,6 +1,5 @@
 import { defineConfig } from "vite-plus";
 import { playwright } from "vite-plus/test/browser-playwright";
-import { swipe } from "./tests/swipe-command";
 
 export default defineConfig({
   server: {
@@ -30,7 +29,6 @@ export default defineConfig({
       headless: true,
       provider: playwright(),
       instances: [{ browser: "chromium" }],
-      commands: { swipe },
     },
   },
 });
