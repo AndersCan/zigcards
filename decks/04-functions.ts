@@ -110,10 +110,23 @@ fn twoToThe(my_number: u32) u32 {
       source: "ziglings 020_quiz3",
       type: "fix",
       front: "This function prints but returns nothing. What are the two missing pieces?",
-      code: `fn printPowersOfTwo(numbers: [4]u16) ??? {
+      code: `const std = @import("std");
+
+fn printPowersOfTwo(numbers: [4]u16) ??? {
     loop (numbers) |n| {
         std.debug.print("{} ", .{twoToThe(n)});
     }
+}
+
+fn twoToThe(number: u16) u16 {
+    var n: u16 = 0;
+    var total: u16 = 1;
+
+    while (n < number) : (n += 1) {
+        total *= 2;
+    }
+
+    return total;
 }`,
       back: "The return type is `void` (it prints, returns nothing) and `loop` must be `for`: `for (numbers) |n|`.",
       backCode: `fn printPowersOfTwo(numbers: [4]u16) void {

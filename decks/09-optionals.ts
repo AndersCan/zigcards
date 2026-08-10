@@ -11,7 +11,9 @@ const deck: Deck = {
       source: "ziglings 045_optionals",
       type: "fix",
       front: "Why doesn't this compile?",
-      code: `pub fn main() void {
+      code: `const std = @import("std");
+
+pub fn main() void {
     const result = deepThought();
 
     // Please threaten the result so that answer is either the
@@ -88,7 +90,15 @@ fn deepThought() ?u8 {
       source: "ziglings 046_optionals2",
       type: "fix",
       front: "What expression stops the walk at the end of the chain?",
-      code: `fn visitElephants(first_elephant: *Elephant) void {
+      code: `const std = @import("std");
+
+const Elephant = struct {
+    letter: u8,
+    tail: *Elephant = null, // Hmm... tail needs something...
+    visited: bool = false,
+};
+
+fn visitElephants(first_elephant: *Elephant) void {
     var e = first_elephant;
 
     while (!e.visited) {

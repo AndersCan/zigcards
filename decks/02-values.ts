@@ -11,7 +11,9 @@ const deck: Deck = {
       source: "ziglings 003_assignment",
       type: "fix",
       front: "This program has three type errors. Can you spot them?",
-      code: `pub fn main() void {
+      code: `const std = @import("std");
+
+pub fn main() void {
     const n: u8 = 50;
     n = n + 5;
 
@@ -64,7 +66,9 @@ pub fn main() void {
       source: "ziglings 004_arrays",
       type: "fix",
       front: "Why doesn't this compile? (There are three problems.)",
-      code: `pub fn main() void {
+      code: `const std = @import("std");
+
+pub fn main() void {
     const some_primes = [_]u8{ 1, 3, 5, 7, 11, 13, 17, 19 };
 
     some_primes[0] = 2;
@@ -161,9 +165,8 @@ const major_tom = major ??? tom;`,
       id: "vl-010",
       source: "ziglings 006_strings",
       type: "concept",
-      front:
-        'Why does `std.debug.print("d={u} {s}\\n", .{ d, major_tom })` print `d=d Major Tom` instead of `d=100`?',
-      back: "Because `{u}` formats the byte as a UTF-8 character (the letter `d`) and `{s}` formats the string. With `{d}` it would print the decimal value `100`.",
+      front: "Why does printing a `u8` byte with `{u}` show a letter instead of a number?",
+      back: "`{u}` formats the byte as a UTF-8 character — the byte 100 prints as `d` — while `{d}` would print the decimal value `100`.",
       explanation:
         "`{u}` = Unicode character, `{s}` = string, `{d}` = decimal integer, `{}` = default.",
     },
@@ -186,7 +189,9 @@ const major_tom = major ??? tom;`,
       source: "ziglings 008_quiz",
       type: "fix",
       front: "This quiz has several bugs. The goal: print `Program in Zig!`",
-      code: `const letters = "YZhifg";
+      code: `const std = @import("std");
+
+const letters = "YZhifg";
 
 const x: usize = 1;
 var lang: [3]u8 = undefined;

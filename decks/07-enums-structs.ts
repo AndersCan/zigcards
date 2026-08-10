@@ -73,14 +73,14 @@ pub fn main() void {
     green = 0x00ff00,
     blue = ???,
 };`,
-      back: "`blue = 0x0000ff` — pure blue is zero red, zero green, full blue. The print call also needs the missing argument `@intFromEnum(Color.blue)`.",
+      back: "`blue = 0x0000ff` — pure blue is zero red, zero green, full blue.",
       backCode: `const Color = enum(u32) {
     red = 0xff0000,
     green = 0x00ff00,
     blue = 0x0000ff,
 };`,
       explanation:
-        "Enums are really just a set of numbers: you can assign explicit values and pick the backing integer type (`u32`). `@intFromEnum(Color.blue)` converts a member back to its integer — the healed file spells it `@backingInt`, an older alias.",
+        "Enums are really just a set of numbers: you can assign explicit values and pick the backing integer type (`u32`). `@intFromEnum()` converts a member back to that integer.",
     },
     {
       id: "es-004",
@@ -96,7 +96,16 @@ pub fn main() void {
       source: "ziglings 036_enums2",
       type: "output",
       front: "What does this print?",
-      code: `    std.debug.print(
+      code: `const std = @import("std");
+
+const Color = enum(u32) {
+    red = 0xff0000,
+    green = 0x00ff00,
+    blue = 0x0000ff,
+};
+
+pub fn main() void {
+    std.debug.print(
         \\\\<p>
         \\\\  <span style="color: #{x:0>6}">Red</span>
         \\\\  <span style="color: #{x:0>6}">Green</span>
@@ -122,12 +131,31 @@ pub fn main() void {
       source: "ziglings 037_structs",
       type: "fix",
       front: "What's missing from this struct?",
-      code: `const Character = struct {
+      code: `const Role = enum {
+    wizard,
+    thief,
+    bard,
+    warrior,
+};
+
+const Character = struct {
     role: Role,
     gold: u32,
     experience: u32,
-};`,
-      back: "A `health` field: the code later reads and mutates `glorp_the_wise.health`, so the struct needs `health: u8`, and Glorp must be initialized with `.health = 100`.",
+};
+
+pub fn main() void {
+    // Please initialize Glorp with 100 health.
+    var glorp_the_wise = Character{
+        .role = Role.wizard,
+        .gold = 20,
+        .experience = 10,
+    };
+
+    // Ouch! Glorp takes a punch!
+    glorp_the_wise.health -= 10;
+}`,
+      back: "A `health` field: `main` mutates `glorp_the_wise.health`, which can't exist without the field. Add `health: u8` to the struct and initialize Glorp with `.health = 100`.",
       backCode: `const Character = struct {
     role: Role,
     gold: u32,
@@ -190,7 +218,23 @@ pub fn main() void {
       source: "ziglings 038_structs2",
       type: "fix",
       front: "What's missing here?",
-      code: `pub fn main() void {
+      code: `const std = @import("std");
+
+const Role = enum {
+    wizard,
+    thief,
+    bard,
+    warrior,
+};
+
+const Character = struct {
+    role: Role,
+    gold: u32,
+    health: u8,
+    experience: u32,
+};
+
+pub fn main() void {
     var chars: [2]Character = undefined;
 
     // Glorp the Wise

@@ -39,6 +39,14 @@ pub fn main() void {
     }
 
     std.debug.print("\\n", .{});
+}
+
+// Notice how this function can return any member of the MyNumberError
+// error set.
+fn numberFail(n: u8) MyNumberError {
+    if (n > 4) return MyNumberError.TooBig;
+    if (n < 4) return MyNumberError.TooSmall; // <---- this one is free!
+    return MyNumberError.TooFour;
 }`,
       back: "Two things are missing: `TooSmall` must be added to the `MyNumberError` error set, and the middle `if` needs the condition `number_error == MyNumberError.TooSmall`.",
       backCode: `const MyNumberError = error{
@@ -181,7 +189,12 @@ fn addTwenty(n: u32) MyNumberError!u32 {
       type: "fix",
       front:
         "What should `fixTooSmall` do to turn TooSmall into 10 and pass through any other error?",
-      code: `fn fixTooSmall(n: u32) MyNumberError!u32 {
+      code: `const MyNumberError = error{
+    TooSmall,
+    TooBig,
+};
+
+fn fixTooSmall(n: u32) MyNumberError!u32 {
     return detectProblems(n) ???;
 }
 
@@ -263,7 +276,12 @@ fn detectProblems(n: u32) MyNumberError!u32 {
       source: "ziglings 025_errors5",
       type: "fix",
       front: "How can `addFive` use `try` instead of an explicit catch-and-return?",
-      code: `fn addFive(n: u32) MyNumberError!u32 {
+      code: `const MyNumberError = error{
+    TooSmall,
+    TooBig,
+};
+
+fn addFive(n: u32) MyNumberError!u32 {
     const x = detect(n);
 
     return x + 5;
@@ -351,7 +369,9 @@ pub fn main() void {
       type: "fix",
       front:
         "`printAnimal` can `return` in four different places. How do you print the closing parenthesis every time?",
-      code: `fn printAnimal(animal: u8) void {
+      code: `const std = @import("std");
+
+fn printAnimal(animal: u8) void {
     std.debug.print("(", .{});
 
     std.debug.print(") ", .{});
@@ -443,7 +463,13 @@ fn calculateTheUltimateQuestionOfLife() u32 {
       source: "ziglings 029_errdefer",
       type: "fix",
       front: "How do you make the `failed!` message print only when `makeNumber` errors?",
-      code: `fn makeNumber() MyErr!u32 {
+      code: `const std = @import("std");
+
+var counter: u32 = 0;
+
+const MyErr = error{ GetFail, IncFail };
+
+fn makeNumber() MyErr!u32 {
     std.debug.print("Getting number...", .{});
 
     std.debug.print("failed!\\n", .{});

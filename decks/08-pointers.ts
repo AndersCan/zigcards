@@ -11,7 +11,9 @@ const deck: Deck = {
       source: "ziglings 039_pointers",
       type: "fix",
       front: "What expression makes `num2` equal 5 using `num1_pointer`?",
-      code: `pub fn main() void {
+      code: `const std = @import("std");
+
+pub fn main() void {
     var num1: u8 = 5;
     const num1_pointer: *u8 = &num1;
 
@@ -56,7 +58,9 @@ pub fn main() void {
       source: "ziglings 040_pointers2",
       type: "fix",
       front: "Why doesn't this compile?",
-      code: `pub fn main() void {
+      code: `const std = @import("std");
+
+pub fn main() void {
     const a: u8 = 12;
     const b: *u8 = &a; // fix this!
 
@@ -72,7 +76,9 @@ pub fn main() void {
       source: "ziglings 040_pointers2",
       type: "output",
       front: "What does this print?",
-      code: `pub fn main() void {
+      code: `const std = @import("std");
+
+pub fn main() void {
     const a: u8 = 12;
     const b: *const u8 = &a; // fix this!
 
@@ -87,7 +93,9 @@ pub fn main() void {
       type: "fix",
       front:
         "Define pointer `p` so it can point to EITHER `foo` or `bar` AND change the value it points to.",
-      code: `pub fn main() void {
+      code: `const std = @import("std");
+
+pub fn main() void {
     var foo: u8 = 5;
     var bar: u8 = 10;
 
@@ -111,7 +119,9 @@ pub fn main() void {
       source: "ziglings 041_pointers3",
       type: "output",
       front: "What does this print?",
-      code: `pub fn main() void {
+      code: `const std = @import("std");
+
+pub fn main() void {
     var foo: u8 = 5;
     var bar: u8 = 10;
 
@@ -200,7 +210,27 @@ fn makeFive(x: *u8) void {
       source: "ziglings 043_pointers5",
       type: "fix",
       front: "What's the missing call?",
-      code: `pub fn main() void {
+      code: `const std = @import("std");
+
+const Class = enum {
+    wizard,
+    thief,
+    bard,
+    warrior,
+};
+
+const Character = struct {
+    class: Class,
+    gold: u32,
+    health: u8 = 100, // You can provide default values
+    experience: u32,
+
+    // I need to use the '?' here to allow for a null value. But
+    // I don't explain it until later. Please don't tell anyone.
+    mentor: ?*Character = null,
+};
+
+pub fn main() void {
     var mighty_krodor = Character{
         .class = Class.wizard,
         .gold = 10000,
@@ -217,6 +247,33 @@ fn makeFive(x: *u8) void {
     // FIX ME!
     // Please pass Glorp to printCharacter():
     printCharacter(???);
+}
+
+// Note how this function's "c" parameter is a pointer to a Character struct.
+fn printCharacter(c: *Character) void {
+    // Here's something you haven't seen before: when switching an enum, you
+    // don't have to write the full enum name. Zig understands that ".wizard"
+    // means "Class.wizard" when we switch on a Class enum value:
+    const class_name = switch (c.class) {
+        .wizard => "Wizard",
+        .thief => "Thief",
+        .bard => "Bard",
+        .warrior => "Warrior",
+    };
+
+    std.debug.print("{s} (G:{} H:{} XP:{})\\n", .{
+        class_name,
+        c.gold,
+        c.health,
+        c.experience,
+    });
+
+    // Checking an "optional" value and capturing it will be
+    // explained later (this pairs with the '?' mentioned above.)
+    if (c.mentor) |mentor| {
+        std.debug.print("  Mentor: ", .{});
+        printCharacter(mentor);
+    }
 }`,
       back: "`printCharacter(&glorp);` — the function takes a `*Character`, so pass the address of the struct, not the struct itself.",
       backCode: `printCharacter(&glorp);`,
@@ -303,7 +360,9 @@ fn printCharacter(c: *Character) void {
       source: "ziglings 044_quiz5",
       type: "fix",
       front: "This quiz builds a circular chain of elephants. What's missing?",
-      code: `const Elephant = struct {
+      code: `const std = @import("std");
+
+const Elephant = struct {
     letter: u8,
     tail: *Elephant = undefined,
     visited: bool = false,
@@ -323,6 +382,20 @@ pub fn main() void {
     visitElephants(&elephantA);
 
     std.debug.print("\\n", .{});
+}
+
+// This function visits all elephants once, starting with the
+// first elephant and following the tails to the next elephant.
+// If we did not "mark" the elephants as visited (by setting
+// visited=true), then this would loop infinitely!
+fn visitElephants(first_elephant: *Elephant) void {
+    var e = first_elephant;
+
+    while (!e.visited) {
+        std.debug.print("Elephant {u}. ", .{e.letter});
+        e.visited = true;
+        e = e.tail;
+    }
 }`,
       back: "Elephant B is never declared and never linked. Add `var elephantB = Elephant{ .letter = 'B' };` and `elephantB.tail = &elephantC;` to close the circle A→B→C→A.",
       backCode: `    var elephantB = Elephant{ .letter = 'B' };
