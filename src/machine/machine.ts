@@ -11,9 +11,12 @@ import {
   resetProgress as clearProgress,
   restartSession,
   startSession,
+  updateCodeSettings,
 } from "./context.ts";
 import {
   backToHome,
+  closeSettings,
+  credits,
   done,
   flip,
   grade,
@@ -21,16 +24,20 @@ import {
   home,
   inputs,
   internal,
+  openCredits,
   openDeck,
+  openSettings,
   reset,
   resetProgress,
   restartDeck,
   reviewBack,
   reviewFront,
   reviewGrading,
+  settings,
   states,
+  updateSettings,
 } from "./refs.ts";
-import type { AppContext, DeckIndex } from "./types.ts";
+import type { AppContext, CodeSettings, DeckIndex } from "./types.ts";
 
 export const GRADE_FLYOUT_MS = 240;
 
@@ -112,6 +119,39 @@ export function createAppActor(options: AppMachineOptions) {
       m.on(home, resetProgress, (_, { context }) => {
         context.set(clearProgress(context.get()));
         return { state: home };
+      });
+
+      const openSettingsStep =
+        (source: string) =>
+        (_: unknown, { context }: { context: Context<AppContext> }) => {
+          context.set({ ...context.get(), settingsFrom: source });
+          return { state: settings };
+        };
+
+      const settingsReturn = (source: string | null) => {
+        if (source === "review.front") return reviewFront;
+        if (source === "review.back") return reviewBack;
+        return home;
+      };
+
+      m.on(home, openSettings, openSettingsStep("home"));
+      m.on(reviewFront, openSettings, openSettingsStep("review.front"));
+      m.on(reviewBack, openSettings, openSettingsStep("review.back"));
+
+      m.on(settings, closeSettings, (_, { context }) => ({
+        state: settingsReturn(context.get().settingsFrom),
+      }));
+      m.on(settings, backToHome, (_, { context }) => leaveToHome(context));
+
+      m.on(home, openCredits, () => ({ state: credits }));
+      m.on(credits, backToHome, (_, { context }) => leaveToHome(context));
+
+      m.onAny(updateSettings, (e, { context }) => {
+        const patch: Partial<CodeSettings> = {};
+        if (e.codeSize !== undefined) patch.codeSize = e.codeSize;
+        if (e.printWidth !== undefined) patch.printWidth = e.printWidth;
+        context.set(updateCodeSettings(context.get(), patch));
+        return {};
       });
 
       m.onAny(reset, (_, { context }) => {

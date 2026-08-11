@@ -6,19 +6,27 @@ import type { Snapshot } from "@mantaq/core";
 import {
   attachPersistence,
   backToHome,
+  closeSettings,
   createAppActor,
   deckProgress,
   flip,
   grade,
+  initialContext,
+  loadPersisted,
+  openCredits,
   openDeck,
+  openSettings,
   reset,
   resetProgress,
   restartDeck,
+  updateSettings,
   type AppActor,
   type AppContext,
   type AppEvent,
+  type CodeSettings,
   type DeckIndex,
 } from "./machine/index.ts";
+import { SECTIONS } from "./sections.ts";
 import type { Card, CardType, Deck } from "./types.ts";
 
 function $(id: string): HTMLElement {
@@ -31,6 +39,8 @@ const screens: Record<ScreenName, HTMLElement> = {
   home: $("screen-home"),
   review: $("screen-review"),
   done: $("screen-done"),
+  settings: $("screen-settings"),
+  credits: $("screen-credits"),
 };
 
 const TYPE_LABEL: Record<CardType, string> = {
@@ -38,7 +48,9 @@ const TYPE_LABEL: Record<CardType, string> = {
   fix: "fix this",
   concept: "concept",
 };
-const APP_VERSION = "0.2.0";
+const APP_VERSION = "0.3.0";
+
+const DEFAULT_PRINT_WIDTH = 80;
 
 /* ---------- code rendering (Prism) ---------- */
 
@@ -61,12 +73,26 @@ function inlineText(text: string): TemplateResult {
   })}`;
 }
 
+function defaultCodeSize(): number {
+  return window.matchMedia("(max-width: 480px)").matches ? 12 : 13.5;
+}
+
+function applyCodeSettings(settings: CodeSettings): void {
+  const root = document.documentElement.style;
+  if (settings.codeSize != null) root.setProperty("--code-size", `${settings.codeSize}px`);
+  else root.removeProperty("--code-size");
+  if (settings.printWidth != null)
+    root.setProperty("--code-print-width", `${settings.printWidth}ch`);
+  else root.removeProperty("--code-print-width");
+}
+
 /* ---------- machine wiring ---------- */
 
-type ScreenName = "home" | "review" | "done";
+type ScreenName = "home" | "review" | "done" | "settings" | "credits";
 
 let actor: AppActor | null = null;
 let deckIndex: DeckIndex = {};
+let currentScreen: ScreenName = "home";
 
 function send(event: AppEvent): void {
   actor?.send(event);
@@ -74,7 +100,19 @@ function send(event: AppEvent): void {
 
 function boot(): void {
   deckIndex = Object.fromEntries(window.ZigCards.decks.map((d) => [d.id, d]));
-  actor = createAppActor({ decks: deckIndex });
+  const base = initialContext();
+  const persisted = loadPersisted(localStorage);
+  actor = createAppActor({
+    decks: deckIndex,
+    context: persisted
+      ? {
+          ...base,
+          progress: persisted.cards,
+          stats: persisted.stats,
+          settings: persisted.settings,
+        }
+      : base,
+  });
   attachPersistence(actor, localStorage);
   actor.on("change", onMachineChange);
 }
@@ -84,11 +122,9 @@ function onMachineChange(snap: Snapshot<AppContext>, prev: Snapshot<AppContext>)
 }
 
 function setTopbar(title: string | null, sub: string | null, idx: number, len: number): void {
-  const inSession = actor?.snapshot().context.session != null;
-  $("btn-back").hidden = !inSession;
-  $("tb-title").textContent = inSession ? title || "ZigCards" : "ZigCards";
+  $("tb-title").textContent = title || "ZigCards";
   $("tb-sub").textContent = sub || "";
-  if (inSession) {
+  if (actor?.snapshot().context.session != null) {
     $("tb-count").hidden = false;
     $("tb-count").textContent = `${idx + 1}/${len}`;
     $("tb-progress-wrap").hidden = false;
@@ -104,33 +140,64 @@ function show(name: ScreenName): void {
     el.hidden = k !== name;
     el.scrollTop = 0;
   }
+  currentScreen = name;
   document.documentElement.scrollTop = 0;
   if (window.scrollTo) window.scrollTo(0, 0);
+  const inSession = actor?.snapshot().context.session != null;
+  const onSettings = name === "settings";
+  const onCredits = name === "credits";
+  $("btn-back").hidden = onSettings || onCredits ? false : !inSession;
+  $("btn-settings").hidden = onSettings || name === "done" || onCredits;
 }
 
 /* ---------- home ---------- */
 
 function homeTemplate(ctx: AppContext): TemplateResult {
-  const decks = window.ZigCards.decks.slice().sort((a, b) => a.order - b.order);
+  const bySection = new Map<string, Deck[]>();
+  for (const deck of window.ZigCards.decks) {
+    const list = bySection.get(deck.section) ?? [];
+    list.push(deck);
+    bySection.set(deck.section, list);
+  }
+  const sections = SECTIONS.filter((s) => bySection.has(s.id)).sort((a, b) => a.order - b.order);
   return html`
     <div class="hero">
       <h1>ZigCards</h1>
-      <p>Spaced-repetition flashcards for learning Zig &mdash; sourced from <b>ziglings</b>.</p>
+      <p>
+        Flashcards for learning Zig &mdash; with the memory basics JavaScript never made you learn.
+      </p>
     </div>
-    ${decks.map(
-      (deck): unknown => html`
-        <div class="deck-row" @click=${() => send(openDeck.create({ deckId: deck.id }))}>
-          <span class="num">${String(deck.order).padStart(2, "0")}</span>
-          <span class="meta">
-            <span class="name">${deck.title}</span>
-            <br /><span class="sub">${deck.blurb}</span>
+    ${sections.map(
+      (sec): unknown => html`
+        <div class="section-head">
+          <span class="section-num">${String(sec.order)}</span>
+          <span class="section-meta">
+            <span class="section-title">${sec.title}</span>
+            <br /><span class="section-blurb">${sec.blurb}</span>
           </span>
-          ${deckProgressBadge(deck, ctx.progress)}
         </div>
+        ${bySection
+          .get(sec.id)!
+          .slice()
+          .sort((a, b) => a.order - b.order)
+          .map(
+            (deck): unknown => html`
+              <div class="deck-row" @click=${() => send(openDeck.create({ deckId: deck.id }))}>
+                <span class="num">${String(deck.order).padStart(2, "0")}</span>
+                <span class="meta">
+                  <span class="name">${deck.title}</span>
+                  <br /><span class="sub">${deck.blurb}</span>
+                </span>
+                ${deckProgressBadge(deck, ctx.progress)}
+              </div>
+            `,
+          )}
       `,
     )}
     <div class="footer-note">
       ${ctx.stats.reviews > 0 ? html`${ctx.stats.reviews} review${ctx.stats.reviews === 1 ? "" : "s"} done &middot; ` : ""}
+      <button @click=${() => send(openCredits.create())}>Thanks &amp; acknowledgements</button>
+      <br />
       <button
         @click=${() => {
           if (confirm("Reset all progress?")) {
@@ -161,6 +228,75 @@ function renderHome(ctx: AppContext): void {
 /* Test hook: send the machine back to a clean home (used by the vitest browser setup). */
 export function resetToHome(): void {
   send(reset.create());
+}
+
+/* ---------- credits ---------- */
+
+const ZIGLINGS_URL = "https://codeberg.org/ziglings/exercises";
+const ZIG_URL = "https://ziglang.org";
+
+function creditsTemplate(): TemplateResult {
+  return html`
+    <h2 class="credits-title">Thanks &amp; acknowledgements</h2>
+    <p class="credits-sub">The people and projects this app builds on.</p>
+
+    <div class="credits-block">
+      <h3>ziglings</h3>
+      <p>
+        The <b>Zig</b> section of this app is built from
+        <a href="${ZIGLINGS_URL}" target="_blank" rel="noopener noreferrer">ziglings</a> &mdash; the
+        classic exercise set for learning Zig, created by
+        <a href="https://github.com/ratfactor" target="_blank" rel="noopener noreferrer"
+          >Dave Gauer (ratfactor)</a
+        >
+        and Chris Boesch. We use it for inspiration: the exercises' teaching sequence and code are
+        the source material for those decks.
+      </p>
+      <p>
+        ziglings is licensed under the
+        <a href="${ZIGLINGS_URL}/src/branch/main/LICENSE" target="_blank" rel="noopener noreferrer"
+          >MIT License</a
+        >
+        &copy; 2021 Dave Gauer, Chris Boesch.
+      </p>
+    </div>
+
+    <div class="credits-block">
+      <h3>Zig</h3>
+      <p>
+        Zig is the language this app teaches. Learn more at
+        <a href="${ZIG_URL}" target="_blank" rel="noopener noreferrer">ziglang.org</a>.
+      </p>
+    </div>
+
+    <div class="credits-block">
+      <h3>The Prerequisites section</h3>
+      <p>
+        The memory-basics decks are original content written for this app, aimed at developers who
+        have spent years in JavaScript and never had to think about addresses, the stack, or the
+        heap. They are not part of ziglings.
+      </p>
+    </div>
+
+    <div class="credits-block">
+      <h3>Tech</h3>
+      <p>
+        Built with <a href="https://lit.dev" target="_blank" rel="noopener noreferrer">lit-html</a>,
+        <a href="https://github.com/AndersCan/mantaq" target="_blank" rel="noopener noreferrer"
+          >Mantaq</a
+        >, <a href="https://prismjs.com" target="_blank" rel="noopener noreferrer">Prism</a>, and
+        <a href="https://viteplus.dev" target="_blank" rel="noopener noreferrer">Vite+</a>.
+      </p>
+    </div>
+  `;
+}
+
+function renderCredits(): void {
+  setTopbar("ZigCards", "thanks & acknowledgements", 0, 0);
+  $("tb-count").hidden = true;
+  $("tb-progress-wrap").hidden = true;
+  show("credits");
+  render(creditsTemplate(), screens.credits);
 }
 
 /* ---------- review session ---------- */
@@ -308,18 +444,143 @@ function renderDone(snap: Snapshot<AppContext>): void {
   );
 }
 
+/* ---------- settings ---------- */
+
+const PREVIEW_CODE = `const std = @import("std");
+
+pub fn main() void {
+    std.debug.print("Powers of two: {} {} {} {}\\n", .{
+        twoToThe(1),
+        twoToThe(2),
+        twoToThe(3),
+        twoToThe(4),
+    });
+}
+
+fn twoToThe(my_number: u32) u32 {
+    return std.math.pow(u32, 2, my_number);
+}`;
+
+function settingsTemplate(ctx: AppContext): TemplateResult {
+  const s = ctx.settings;
+  const size = s.codeSize ?? defaultCodeSize();
+  const width = s.printWidth ?? DEFAULT_PRINT_WIDTH;
+  const setSize = (e: Event): void => {
+    send(updateSettings.create({ codeSize: Number((e.target as HTMLInputElement).value) }));
+  };
+  const setWidth = (e: Event): void => {
+    send(updateSettings.create({ printWidth: Number((e.target as HTMLInputElement).value) }));
+  };
+  return html`
+    <h2 class="settings-title">Code display</h2>
+    <p class="settings-sub">
+      Tune how code blocks fit on your screen. Changes apply everywhere instantly.
+    </p>
+
+    <div class="setting-row">
+      <div class="setting-head">
+        <span class="setting-name">Code size</span>
+        <span class="setting-val"
+          >${size.toFixed(1)}px${s.codeSize == null ? " &middot; default" : ""}</span
+        >
+      </div>
+      <input
+        class="slider"
+        type="range"
+        min="9"
+        max="20"
+        step="0.5"
+        .value=${String(size)}
+        aria-label="Code size"
+        @input=${setSize}
+      />
+      <div class="setting-row-foot">
+        <span class="hint">smaller lets more code fit on a phone</span>
+        ${
+          s.codeSize == null
+            ? ""
+            : html`<button
+                class="link-btn"
+                @click=${() => send(updateSettings.create({ codeSize: null }))}
+              >
+                reset
+              </button>`
+        }
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-head">
+        <span class="setting-name">Print width</span>
+        <span class="setting-val"
+          >${width} chars/line${s.printWidth == null ? " &middot; default" : ""}</span
+        >
+      </div>
+      <input
+        class="slider"
+        type="range"
+        min="40"
+        max="120"
+        step="5"
+        .value=${String(width)}
+        aria-label="Print width"
+        @input=${setWidth}
+      />
+      <div class="setting-row-foot">
+        <span class="hint">long lines wrap at this column width</span>
+        ${
+          s.printWidth == null
+            ? ""
+            : html`<button
+                class="link-btn"
+                @click=${() => send(updateSettings.create({ printWidth: null }))}
+              >
+                reset
+              </button>`
+        }
+      </div>
+    </div>
+
+    <div class="settings-preview">
+      <div class="settings-preview-label">Preview</div>
+      ${codeBlock(PREVIEW_CODE)}
+    </div>
+  `;
+}
+
+function renderSettings(ctx: AppContext): void {
+  setTopbar("Settings", "code display", 0, 0);
+  $("tb-count").hidden = true;
+  $("tb-progress-wrap").hidden = true;
+  show("settings");
+  render(settingsTemplate(ctx), screens.settings);
+}
+
 function renderApp(snap: Snapshot<AppContext>, prev: Snapshot<AppContext>): void {
+  applyCodeSettings(snap.context.settings);
   const [name] = snap.path;
   if (name === "home") renderHome(snap.context);
   else if (name === "done") renderDone(snap);
+  else if (name === "settings") renderSettings(snap.context);
+  else if (name === "credits") renderCredits();
   else renderReview(snap, prev);
 }
 
 /* ---------- topbar + keyboard ---------- */
 
-$("btn-back").addEventListener("click", () => send(backToHome.create()));
+$("btn-back").addEventListener("click", () => {
+  if (currentScreen === "settings") send(closeSettings.create());
+  else send(backToHome.create());
+});
+
+$("btn-settings").addEventListener("click", () => send(openSettings.create()));
 
 document.addEventListener("keydown", (e: KeyboardEvent) => {
+  if (currentScreen === "settings" && e.key === "Escape") {
+    e.preventDefault();
+    send(closeSettings.create());
+    return;
+  }
   const state = actor?.snapshot().path[0] ?? "";
   if (!state.startsWith("review.")) return;
   if (e.key === " " || e.key === "Enter") {

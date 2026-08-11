@@ -5,6 +5,7 @@ const deck: Deck = {
   title: "Pointers",
   order: 8,
   blurb: "&, *, pointer captures",
+  section: "zig",
   cards: [
     {
       id: "pt-001",

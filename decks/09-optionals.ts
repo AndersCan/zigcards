@@ -5,6 +5,7 @@ const deck: Deck = {
   title: "Optionals",
   order: 9,
   blurb: "?T, null, orelse, if-capture",
+  section: "zig",
   cards: [
     {
       id: "op-001",

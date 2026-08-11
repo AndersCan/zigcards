@@ -1,5 +1,14 @@
 export type CardType = "output" | "fix" | "concept";
 
+export type SectionId = "prerequisites" | "zig";
+
+export interface Section {
+  id: SectionId;
+  title: string;
+  blurb: string;
+  order: number;
+}
+
 export interface Card {
   id: string;
   source: string;
@@ -16,5 +25,6 @@ export interface Deck {
   title: string;
   order: number;
   blurb: string;
+  section: SectionId;
   cards: Card[];
 }

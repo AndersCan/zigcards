@@ -1,12 +1,27 @@
 import type { Deck } from "../types.ts";
-import type { AppContext, CardProgress, SessionState, Stats } from "./types.ts";
+import type { AppContext, CardProgress, CodeSettings, SessionState, Stats } from "./types.ts";
 
 export function emptyStats(): Stats {
   return { sessions: 0, reviews: 0, known: 0, unknown: 0 };
 }
 
+export function defaultCodeSettings(): CodeSettings {
+  return { codeSize: null, printWidth: null };
+}
+
 export function initialContext(): AppContext {
-  return { session: null, lastGrade: null, progress: {}, stats: emptyStats() };
+  return {
+    session: null,
+    lastGrade: null,
+    progress: {},
+    stats: emptyStats(),
+    settings: defaultCodeSettings(),
+    settingsFrom: null,
+  };
+}
+
+export function updateCodeSettings(ctx: AppContext, patch: Partial<CodeSettings>): AppContext {
+  return { ...ctx, settings: { ...ctx.settings, ...patch } };
 }
 
 export function startSession(ctx: AppContext, deckId: string): AppContext {

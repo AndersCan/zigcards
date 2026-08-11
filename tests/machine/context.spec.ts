@@ -11,6 +11,7 @@ import {
   resetProgress,
   restartSession,
   startSession,
+  updateCodeSettings,
 } from "../../src/machine/context.ts";
 import type { AppContext } from "../../src/machine/types.ts";
 import type { Card, Deck } from "../../src/types.ts";
@@ -23,7 +24,7 @@ function makeDeck(id: string, count: number): Deck {
     front: `${id} front ${i}`,
     back: `${id} back ${i}`,
   }));
-  return { id, title: id, order: 1, blurb: "test deck", cards };
+  return { id, title: id, order: 1, blurb: "test deck", section: "zig", cards };
 }
 
 function inSession(ctx: AppContext): AppContext {
@@ -37,6 +38,18 @@ describe("context helpers", () => {
       lastGrade: null,
       progress: {},
       stats: emptyStats(),
+      settings: { codeSize: null, printWidth: null },
+      settingsFrom: null,
+    });
+  });
+
+  it("updateCodeSettings merges a patch without mutating", () => {
+    const ctx = updateCodeSettings(initialContext(), { codeSize: 15 });
+    expect(ctx.settings).toEqual({ codeSize: 15, printWidth: null });
+    expect(initialContext().settings).toEqual({ codeSize: null, printWidth: null });
+    expect(updateCodeSettings(ctx, { printWidth: 70 }).settings).toEqual({
+      codeSize: 15,
+      printWidth: 70,
     });
   });
 

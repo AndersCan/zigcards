@@ -5,6 +5,7 @@ const deck: Deck = {
   title: "switch, unreachable, if-error",
   order: 6,
   blurb: "switch, unreachable, error handling",
+  section: "zig",
   cards: [
     {
       id: "sw-001",

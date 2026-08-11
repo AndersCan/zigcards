@@ -18,6 +18,9 @@
   --num: #79c0ff;
   --com: #8b949e;
   --op: #e6e9ef;
+
+  --code-size: 13.5px;
+  --code-print-width: 80ch;
 }
 
 * {
@@ -211,6 +214,68 @@ body {
   color: var(--green);
 }
 
+/* ---------- home: sections ---------- */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 2px 10px;
+}
+.section-head:first-of-type {
+  margin-top: 4px;
+}
+.section-num {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent);
+  border: 1px solid #4a3a18;
+  border-radius: 8px;
+  padding: 4px 6px;
+  background: #1e180c;
+}
+.section-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+.section-blurb {
+  font-size: 12px;
+  color: var(--dim);
+}
+
+/* ---------- credits ---------- */
+.credits-title {
+  margin: 4px 2px 2px;
+  font-size: 20px;
+}
+.credits-sub {
+  color: var(--dim);
+  font-size: 13px;
+  margin: 0 2px 18px;
+}
+.credits-block {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.credits-block h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.credits-block p {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.credits-block p:last-child {
+  margin-bottom: 0;
+}
+.credits-block a {
+  color: var(--blue);
+  text-decoration: underline;
+}
+
 .footer-note {
   margin-top: 18px;
   text-align: center;
@@ -320,12 +385,14 @@ pre.code {
   border-radius: 10px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  font-size: var(--code-size);
+  max-width: var(--code-print-width);
 }
 pre.code code {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 13.5px;
   line-height: 1.55;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   user-select: text;
   -webkit-user-select: text;
 }
@@ -490,6 +557,73 @@ code.inline {
   font-size: 18px;
 }
 
+/* ---------- settings ---------- */
+.settings-title {
+  margin: 4px 2px 2px;
+  font-size: 20px;
+}
+.settings-sub {
+  color: var(--dim);
+  font-size: 13px;
+  margin: 0 2px 18px;
+}
+.setting-row {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.setting-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.setting-name {
+  font-weight: 600;
+}
+.setting-val {
+  font-size: 13px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.slider {
+  width: 100%;
+  margin: 12px 0 4px;
+  accent-color: var(--accent);
+}
+.setting-row-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.hint {
+  font-size: 12px;
+  color: var(--dim);
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+}
+.settings-preview-label {
+  font-size: 11px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 6px 2px 0;
+}
+.settings-preview pre.code {
+  margin-top: 6px;
+}
+
 /* ---------- done ---------- */
 .done-box {
   text-align: center;
@@ -626,11 +760,15 @@ code.inline {
     padding: 10px;
     border-radius: 8px;
   }
-  pre.code code {
-    font-size: 12px;
-  }
   .deck-row {
     padding: 12px 10px;
+  }
+}
+
+/* smaller default code on narrow phones (user setting overrides via inline var) */
+@media (max-width: 480px) {
+  :root {
+    --code-size: 12px;
   }
 }
 

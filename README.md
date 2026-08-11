@@ -5,10 +5,12 @@ exercise set. Mobile-first, dark, thumb-friendly, works offline.
 
 **Try it live:** <https://anderscan.github.io/zigcards/>
 
-**The content is not invented.** Every card is grounded in a specific ziglings
-exercise (cite it in the `source` field). Code snippets are copied verbatim
-from the exercises, and every expected output is checked against ziglings'
-own answer key (see `scripts/validate.mjs`).
+**The Zig content is not invented.** Every Zig-deck card is grounded in a
+specific ziglings exercise (cite it in the `source` field). Code snippets are
+copied verbatim from the exercises, and every expected output is checked
+against ziglings' own answer key (see `scripts/validate.mjs`). The Prerequisites
+section is original content, clearly separated on the home screen and credited
+in the app's acknowledgements page.
 
 ## Quick start
 
@@ -60,17 +62,24 @@ transpiled by Vite — no separate emit step.
 
 ## Decks
 
-| #   | Deck                           | ziglings exercises |
-| --- | ------------------------------ | ------------------ |
-| 1   | Hello, Zig                     | 001–002            |
-| 2   | Values: types, arrays, strings | 003–008            |
-| 3   | Control Flow                   | 009–017            |
-| 4   | Functions                      | 018–020            |
-| 5   | Errors & defer                 | 021–029            |
-| 6   | switch, unreachable, if-error  | 030–034            |
-| 7   | Enums & structs                | 035–038            |
-| 8   | Pointers                       | 039–044            |
-| 9   | Optionals                      | 045–046            |
+| #   | Section       | Deck                           | Content                            |
+| --- | ------------- | ------------------------------ | ---------------------------------- |
+| 0   | Prerequisites | Memory basics                  | bits, bytes, addresses, references |
+| 0   | Prerequisites | Stack & heap                   | call frames, lifetimes, the GC     |
+| 1   | Zig           | Hello, Zig                     | ziglings 001–002                   |
+| 2   | Zig           | Values: types, arrays, strings | ziglings 003–008                   |
+| 3   | Zig           | Control Flow                   | ziglings 009–017                   |
+| 4   | Zig           | Functions                      | ziglings 018–020                   |
+| 5   | Zig           | Errors & defer                 | ziglings 021–029                   |
+| 6   | Zig           | switch, unreachable, if-error  | ziglings 030–034                   |
+| 7   | Zig           | Enums & structs                | ziglings 035–038                   |
+| 8   | Zig           | Pointers                       | ziglings 039–044                   |
+| 9   | Zig           | Optionals                      | ziglings 045–046                   |
+
+The **Prerequisites** section is original memory/foundations content written
+for this app — the parts a JavaScript developer never had to think about. The
+**Zig** section is built from the ziglings exercise sequence; the app's
+"Thanks & acknowledgements" page credits ziglings and its authors.
 
 Content targets the Zig version required by `ziglings/build.zig` (currently a
 `0.17.0-dev` build). The expected outputs in the answer key and the healed
@@ -90,9 +99,11 @@ exercise sources were generated from the current ziglings main branch.
 vp run validate
 ```
 
-Checks: required card fields, valid types, unique ids, `source` files exist,
-every code/backCode line exists in the exercise source, and every
-`output`-type card's answer matches the ziglings answer key.
+Checks: required card fields, valid types, unique ids, valid `section`, and —
+for `zig` decks — `source` files exist, every code/backCode line exists in the
+exercise source, and every `output`-type card's answer matches the ziglings
+answer key. `prerequisites` decks are schema-checked plus must be concept-only
+(`prereq `-prefixed `source`, no `code`/`backCode`).
 
 ## Scope notes (current phase)
 

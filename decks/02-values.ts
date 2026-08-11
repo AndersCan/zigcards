@@ -5,6 +5,7 @@ const deck: Deck = {
   title: "Values: types, arrays, strings",
   order: 2,
   blurb: "const/var, signed & unsigned ints, arrays, strings",
+  section: "zig",
   cards: [
     {
       id: "vl-001",

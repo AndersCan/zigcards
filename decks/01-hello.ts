@@ -5,6 +5,7 @@ const deck: Deck = {
   title: "Hello, Zig",
   order: 1,
   blurb: "entry point, imports, std.debug.print",
+  section: "zig",
   cards: [
     {
       id: "hl-001",

@@ -71,7 +71,10 @@ function hasSource(file) {
 for (const deck of decks) {
   if (!deck.id || !/^[a-z0-9-]+$/.test(deck.id)) errors.push(`${deck.id}: bad deck id`);
   if (typeof deck.order !== "number") errors.push(`${deck.id}: missing numeric order`);
+  if (!["prerequisites", "zig"].includes(deck.section))
+    errors.push(`${deck.id}: missing or invalid section '${deck.section}'`);
   if (!Array.isArray(deck.cards) || deck.cards.length === 0) errors.push(`${deck.id}: no cards`);
+  const isPrereq = deck.section === "prerequisites";
   const idsSeen = new Set();
   for (const c of deck.cards) {
     cardCount++;
@@ -84,6 +87,16 @@ for (const deck of decks) {
     if (idsSeen.has(c.id)) errors.push(`${deck.id}: duplicate id '${c.id}' within deck`);
     ids.add(c.id);
     idsSeen.add(c.id);
+
+    if (isPrereq) {
+      if (!(c.source || "").startsWith("prereq "))
+        errors.push(`${deck.id}/${c.id}: prereq source must start with 'prereq '`);
+      if (c.type !== "concept")
+        errors.push(`${deck.id}/${c.id}: prereq cards must be 'concept' (got '${c.type}')`);
+      if (c.code || c.backCode)
+        errors.push(`${deck.id}/${c.id}: prereq cards must not carry Zig code`);
+      continue;
+    }
 
     const m = /^ziglings (\d+)_/.exec(c.source || "");
     if (!m) errors.push(`${deck.id}/${c.id}: bad source '${c.source}'`);

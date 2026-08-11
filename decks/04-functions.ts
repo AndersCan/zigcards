@@ -5,6 +5,7 @@ const deck: Deck = {
   title: "Functions",
   order: 4,
   blurb: "fn, params, return, recursion",
+  section: "zig",
   cards: [
     {
       id: "fn-001",

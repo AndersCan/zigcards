@@ -9,7 +9,15 @@ import {
   type PersistedData,
   type StorageLike,
 } from "../../src/machine/persistence.ts";
-import { backToHome, flip, grade, openDeck, reset, resetProgress } from "../../src/machine/refs.ts";
+import {
+  backToHome,
+  flip,
+  grade,
+  openDeck,
+  reset,
+  resetProgress,
+  updateSettings,
+} from "../../src/machine/refs.ts";
 import type { Card, Deck } from "../../src/types.ts";
 
 function memoryStorage(): StorageLike & { data: Map<string, string> } {
@@ -31,7 +39,7 @@ function makeDeck(id: string, count: number): Deck {
     front: `${id} front ${i}`,
     back: `${id} back ${i}`,
   }));
-  return { id, title: id, order: 1, blurb: "test deck", cards };
+  return { id, title: id, order: 1, blurb: "test deck", section: "zig", cards };
 }
 
 function boot(count = 3) {
@@ -53,6 +61,7 @@ describe("persistence", () => {
     const data: PersistedData = {
       cards: { a: { seen: 1, known: 1, unknown: 0, last: 5 } },
       stats: { sessions: 0, reviews: 1, known: 1, unknown: 0 },
+      settings: { codeSize: 15, printWidth: 70 },
     };
     persistData(data, storage);
     expect(loadPersisted(storage)).toEqual(data);
@@ -74,7 +83,17 @@ describe("persistence", () => {
     expect(loadPersisted(storage)).toEqual({
       cards: {},
       stats: { sessions: 0, reviews: 4, known: 0, unknown: 0 },
+      settings: { codeSize: null, printWidth: null },
     });
+  });
+
+  it("persists code settings changes", () => {
+    const { actor, storage } = boot();
+    actor.send(openDeck.create({ deckId: "d1" }));
+    actor.send(flip.create());
+    expect(storage.data.has(STORAGE_KEY)).toBe(false);
+    actor.send(updateSettings.create({ codeSize: 16, printWidth: 60 }));
+    expect(storedStats(storage).settings).toEqual({ codeSize: 16, printWidth: 60 });
   });
 
   it("writes only when progress or stats change", () => {
@@ -116,6 +135,7 @@ describe("persistence", () => {
       {
         cards: { c1: { seen: 1, known: 1, unknown: 0, last: 9 } },
         stats: { sessions: 0, reviews: 1, known: 1, unknown: 0 },
+        settings: { codeSize: 17, printWidth: 55 },
       },
       storage,
     );
@@ -130,6 +150,8 @@ describe("persistence", () => {
             lastGrade: null,
             progress: persisted.cards,
             stats: persisted.stats,
+            settings: persisted.settings,
+            settingsFrom: null,
           }
         : undefined,
     });
@@ -139,6 +161,7 @@ describe("persistence", () => {
       unknown: 0,
       last: 9,
     });
+    expect(actor.snapshot().context.settings).toEqual({ codeSize: 17, printWidth: 55 });
   });
 
   it("RESET_PROGRESS persists the cleared data", () => {
@@ -151,6 +174,7 @@ describe("persistence", () => {
     expect(storedStats(storage)).toEqual({
       cards: {},
       stats: { sessions: 0, reviews: 0, known: 0, unknown: 0 },
+      settings: { codeSize: null, printWidth: null },
     });
   });
 
@@ -163,6 +187,7 @@ describe("persistence", () => {
     expect(storedStats(storage)).toEqual({
       cards: {},
       stats: { sessions: 0, reviews: 0, known: 0, unknown: 0 },
+      settings: { codeSize: null, printWidth: null },
     });
   });
 });

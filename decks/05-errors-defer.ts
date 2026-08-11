@@ -5,6 +5,7 @@ const deck: Deck = {
   title: "Errors & defer",
   order: 5,
   blurb: "errors, error unions, defer, errdefer",
+  section: "zig",
   cards: [
     {
       id: "er-001",

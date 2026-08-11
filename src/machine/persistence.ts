@@ -1,6 +1,6 @@
 import type { Snapshot } from "@mantaq/core";
-import { emptyStats } from "./context.ts";
-import type { AppContext, CardProgress, Stats } from "./types.ts";
+import { defaultCodeSettings, emptyStats } from "./context.ts";
+import type { AppContext, CardProgress, CodeSettings, Stats } from "./types.ts";
 
 export const STORAGE_KEY = "zigcards.v1";
 
@@ -12,6 +12,7 @@ export interface StorageLike {
 export interface PersistedData {
   cards: Record<string, CardProgress>;
   stats: Stats;
+  settings: CodeSettings;
 }
 
 export function loadPersisted(storage: StorageLike): PersistedData | null {
@@ -22,6 +23,7 @@ export function loadPersisted(storage: StorageLike): PersistedData | null {
     return {
       cards: d.cards ?? {},
       stats: { ...emptyStats(), ...d.stats },
+      settings: { ...defaultCodeSettings(), ...d.settings },
     };
   } catch {
     return null;
@@ -48,10 +50,18 @@ export function attachPersistence(
   return actor.on("change", (snapshot, prev) => {
     if (
       snapshot.context.progress === prev.context.progress &&
-      snapshot.context.stats === prev.context.stats
+      snapshot.context.stats === prev.context.stats &&
+      snapshot.context.settings === prev.context.settings
     ) {
       return;
     }
-    persistData({ cards: snapshot.context.progress, stats: snapshot.context.stats }, storage);
+    persistData(
+      {
+        cards: snapshot.context.progress,
+        stats: snapshot.context.stats,
+        settings: snapshot.context.settings,
+      },
+      storage,
+    );
   });
 }

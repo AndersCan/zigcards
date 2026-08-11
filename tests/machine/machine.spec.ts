@@ -4,12 +4,15 @@ import { matches } from "@mantaq/sugar";
 import { GRADE_FLYOUT_MS, createAppActor } from "../../src/machine/machine.ts";
 import {
   backToHome,
+  closeSettings,
   flip,
   grade,
   openDeck,
+  openSettings,
   reset,
   resetProgress,
   restartDeck,
+  updateSettings,
 } from "../../src/machine/refs.ts";
 import type { Card, Deck } from "../../src/types.ts";
 
@@ -21,7 +24,7 @@ function makeDeck(id: string, count: number): Deck {
     front: `${id} front ${i}`,
     back: `${id} back ${i}`,
   }));
-  return { id, title: id, order: 1, blurb: "test deck", cards };
+  return { id, title: id, order: 1, blurb: "test deck", section: "zig", cards };
 }
 
 function makeApp(count = 3) {
@@ -221,5 +224,50 @@ describe("zigcards machine", () => {
     expect(snap.path).toEqual(["review.back"]);
     expect(snap.context.session?.deckId).toBe("d1");
     expect(snap.done).toBeUndefined();
+  });
+
+  it("OPEN_SETTINGS from home enters settings and CLOSE returns home", () => {
+    const { actor } = makeApp();
+    actor.send(openSettings.create());
+    expect(matches(actor, "settings")).toBe(true);
+    actor.send(closeSettings.create());
+    expect(matches(actor, "home")).toBe(true);
+  });
+
+  it("OPEN_SETTINGS mid-review returns to the same card side", () => {
+    const { actor } = makeApp();
+    actor.send(openDeck.create({ deckId: "d1" }));
+    actor.send(flip.create());
+    actor.send(openSettings.create());
+    expect(matches(actor, "settings")).toBe(true);
+    actor.send(closeSettings.create());
+    expect(matches(actor, "review.back")).toBe(true);
+    expect(actor.snapshot().context.session?.idx).toBe(0);
+  });
+
+  it("UPDATE_SETTINGS mutates context without leaving the state", () => {
+    const { actor } = makeApp();
+    actor.send(openSettings.create());
+    actor.send(updateSettings.create({ codeSize: 15 }));
+    expect(matches(actor, "settings")).toBe(true);
+    expect(actor.snapshot().context.settings).toEqual({ codeSize: 15, printWidth: null });
+  });
+
+  it("UPDATE_SETTINGS works from a review state too", () => {
+    const { actor } = makeApp();
+    actor.send(openDeck.create({ deckId: "d1" }));
+    actor.send(flip.create());
+    actor.send(updateSettings.create({ printWidth: 70 }));
+    expect(matches(actor, "review.back")).toBe(true);
+    expect(actor.snapshot().context.settings.printWidth).toBe(70);
+  });
+
+  it("RESET keeps the code settings", () => {
+    const { actor } = makeApp();
+    actor.send(openSettings.create());
+    actor.send(updateSettings.create({ codeSize: 15 }));
+    actor.send(closeSettings.create());
+    actor.send(reset.create());
+    expect(actor.snapshot().context.settings.codeSize).toBe(15);
   });
 });

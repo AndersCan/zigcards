@@ -13,7 +13,7 @@
     "prepare": "vp config"
   },
   "dependencies": {
-    "@mantaq/core": "0.0.2",
+    "@mantaq/core": "0.0.3",
     "@mantaq/sugar": "0.0.2",
     "lit-html": "^3.2.1",
     "prismjs": "^1.29.0"

@@ -1,10 +1,15 @@
 # ZigCards Deck Authoring Guide
 
-This guide governs how decks are written. Its goal: every card teaches one
-correct, verifiable fact about Zig, sourced from material that already compiles
-and runs. **We do not invent Zig code.** All snippets come from the ziglings
-exercise set, which is continuously compiled and tested against a real Zig
-toolchain.
+This guide governs how decks are written. There are two kinds of decks:
+
+1. **Zig decks** (section `zig`): teach Zig facts, sourced from material that
+   already compiles and runs. **We do not invent Zig code.** All snippets come
+   from the ziglings exercise set, which is continuously compiled and tested
+   against a real Zig toolchain.
+2. **Prerequisite decks** (section `prerequisites`): original memory/foundations
+   content for developers coming from managed languages (e.g. JavaScript). These
+   are **concept-only**: no Zig code, no invented outputs, correctness by
+   careful authoring + review.
 
 ---
 
@@ -53,8 +58,29 @@ export default deck;
 ```
 
 Register a new deck by adding an import + entry in `src/main.ts`. The deck's
-`order` field is what the home screen sorts by. The `Card` type is defined in
-`src/types.ts`; `npm run typecheck` enforces the schema.
+`order` field is what the home screen sorts by within its section. Every deck
+also carries `section`: `"zig"` for the ziglings-derived curriculum, or
+`"prerequisites"` for the memory/foundations decks. The `Card` type is defined
+in `src/types.ts`; `npm run typecheck` enforces the schema.
+
+## 2b. Prerequisite decks (section `prerequisites`)
+
+These decks fill the knowledge gap for developers who came to Zig from a
+language that hid memory management (10 years of JavaScript, say): what an
+address is, stack vs heap, values vs references, what a GC does. Rules:
+
+1. **Concept cards only.** `type: "concept"` — no `output` (no answer key to
+   verify against) and no `fix` (that type exists to teach Zig compile errors).
+2. **No Zig code.** `code`/`backCode` must be absent. Inline identifiers in
+   `front`/`back`/`explanation` (`` `u8` ``, `` `&num` ``) are fine.
+3. **Source convention.** `source` must start with `prereq ` and name the deck
+   topic, e.g. `source: "prereq memory-basics"`. There is no external artifact
+   to byte-check against — correctness is the author's responsibility.
+4. **Bridge, don't lecture.** These decks exist to translate what a JS/GC
+   developer already knows (references, `let b = a` for objects) into the
+   explicit memory model Zig exposes (addresses, `&`, `.*`).
+5. **Flashcard-sized** like all cards: front ≤ ~20 words, back ≤ ~40 words,
+   `explanation` ≤ ~3 sentences.
 
 ## 3. Card schema
 

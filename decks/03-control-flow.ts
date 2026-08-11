@@ -5,6 +5,7 @@ const deck: Deck = {
   title: "Control Flow",
   order: 3,
   blurb: "if, while, for",
+  section: "zig",
   cards: [
     {
       id: "cf-001",

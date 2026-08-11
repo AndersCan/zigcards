@@ -1,4 +1,6 @@
 import type { Deck } from "./types.ts";
+import deckMemoryBasics from "../decks/00-memory-basics.ts";
+import deckStackHeap from "../decks/00-stack-heap.ts";
 import deckHello from "../decks/01-hello.ts";
 import deckValues from "../decks/02-values.ts";
 import deckControlFlow from "../decks/03-control-flow.ts";
@@ -10,6 +12,8 @@ import deckPointers from "../decks/08-pointers.ts";
 import deckOptionals from "../decks/09-optionals.ts";
 
 const decks: Deck[] = [
+  deckMemoryBasics,
+  deckStackHeap,
   deckHello,
   deckValues,
   deckControlFlow,

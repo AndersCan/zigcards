@@ -5,6 +5,7 @@ const deck: Deck = {
   title: "Enums & structs",
   order: 7,
   blurb: "enum, struct, fields",
+  section: "zig",
   cards: [
     {
       id: "es-001",
