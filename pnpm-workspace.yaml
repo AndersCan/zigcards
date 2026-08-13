@@ -9,7 +9,7 @@ catalog:
 overrides:
   vite: "catalog:"
   vitest: "catalog:"
-  "@mantaq/core": "0.1.0"
+  "@mantaq/core": "0.2.0"
 
 peerDependencyRules:
   allowAny:
@@ -22,14 +22,14 @@ peerDependencyRules:
 allowBuilds:
   esbuild: true
 
-# We deliberately consume first-party mantaq 0.1.0 releases within hours of
+# We deliberately consume first-party mantaq releases within hours of
 # publishing; the release-age gate is pure friction here.
 minimumReleaseAge: 0
 
 minimumReleaseAgeExclude:
-  - "@mantaq/core@0.1.0"
-  - "@mantaq/sugar@0.1.0"
+  - "@mantaq/core@0.2.0"
+  - "@mantaq/sugar@0.2.0"
   - "@mantaq/utils@0.0.1"
   - "@mantaq/utils@0.0.2"
-  - "@mantaq/test@0.1.0"
-  - "@mantaq/traversal@0.1.0"
+  - "@mantaq/test@0.1.1"
+  - "@mantaq/traversal@0.1.1"

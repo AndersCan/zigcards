@@ -22,18 +22,18 @@ catalogs:
 overrides:
   vite: npm:@voidzero-dev/vite-plus-core@0.2.8
   vitest: 4.1.10
-  '@mantaq/core': 0.1.0
+  '@mantaq/core': 0.2.0
 
 importers:
 
   .:
     dependencies:
       '@mantaq/core':
-        specifier: 0.1.0
-        version: 0.1.0
+        specifier: 0.2.0
+        version: 0.2.0
       '@mantaq/sugar':
-        specifier: 0.1.0
-        version: 0.1.0
+        specifier: 0.2.0
+        version: 0.2.0
       lit-html:
         specifier: ^3.2.1
         version: 3.3.3
@@ -42,11 +42,11 @@ importers:
         version: 1.30.0
     devDependencies:
       '@mantaq/test':
-        specifier: 0.1.0
-        version: 0.1.0
+        specifier: 0.1.1
+        version: 0.1.1
       '@mantaq/traversal':
-        specifier: 0.1.0
-        version: 0.1.0
+        specifier: 0.1.1
+        version: 0.1.1
       '@types/prismjs':
         specifier: ^1.26.6
         version: 1.26.6
@@ -89,17 +89,17 @@ packages:
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
 
-  '@mantaq/core@0.1.0':
-    resolution: {integrity: sha512-tJZe3V8p80VHT6PZ5eKHumhmHIk9Krpda0Gk/nnIHnztl8dUz6RfyPEVI+A/nYfovGf8gZGdUdoR/a32U2dntw==}
+  '@mantaq/core@0.2.0':
+    resolution: {integrity: sha512-UBifMBqd0btspp60VeyBlO+XC6GpghaW2O6zKrS2ksvO3DZHVH0kFMg8tmZu+b9zwGKTMoySTyF600UrIYx6TA==}
 
-  '@mantaq/sugar@0.1.0':
-    resolution: {integrity: sha512-YFD35js/ZXcxclTWqIv377T9O2xT45iXcjr3NSA6ieRAFIMVbyqkx45Kcx8iQUMFO7iaWzwPk7fNqy9slfX0+Q==}
+  '@mantaq/sugar@0.2.0':
+    resolution: {integrity: sha512-AtyyijNopd0UXqWL5VIbLL/fnUUymnmzOf/bYMP9IHmSB4IiTiAfaA5NbXEwUnWJmUbl811pQHdC55OGfVjRMQ==}
 
-  '@mantaq/test@0.1.0':
-    resolution: {integrity: sha512-hMz6UzHl2jiEdFUafEw2prYVZcE6Q0Thql78v58K8+UrDvUSxC0bvOtFAI2xP0gZ/DPTP2z/lBpBgsL7Lp5SIg==}
+  '@mantaq/test@0.1.1':
+    resolution: {integrity: sha512-wg4S6sry5etWNdLbjXKdo9nyCsTLz0jCo9bIykdG7OM0m1p7d+cTS6Fg7g9shI5P/GqBbEYL5hT1swpBmRuGug==}
 
-  '@mantaq/traversal@0.1.0':
-    resolution: {integrity: sha512-1gxNJk8s7GZaWpMQwwSowU0VAiOVz+ksxIuuvblha5tbnHG00n+82NS1mSOkjkgCxbYFErV8QQ34lmluZf8Nmw==}
+  '@mantaq/traversal@0.1.1':
+    resolution: {integrity: sha512-fVQr0ncCG7UaJse4PtBoPrj4iP7306k+Jk7Xrg4NPf8fVM0sDf6BZmCQd2LsF1b8iwB84LaOUUwK0cIWSfzVVA==}
 
   '@mantaq/utils@0.0.2':
     resolution: {integrity: sha512-cUqCc2DCKm4LcFM8gGFYaoxir5hJ+9WsBbNkhz8v/GAiHrdIZWHhuGRCu1OTHq2moFjCcnDDVQOnt2x8ozcsFQ==}
@@ -1070,23 +1070,23 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
-  '@mantaq/core@0.1.0':
+  '@mantaq/core@0.2.0':
     dependencies:
       '@mantaq/utils': 0.0.2
 
-  '@mantaq/sugar@0.1.0':
+  '@mantaq/sugar@0.2.0':
     dependencies:
-      '@mantaq/core': 0.1.0
+      '@mantaq/core': 0.2.0
       '@mantaq/utils': 0.0.2
 
-  '@mantaq/test@0.1.0':
+  '@mantaq/test@0.1.1':
     dependencies:
-      '@mantaq/core': 0.1.0
-      '@mantaq/traversal': 0.1.0
+      '@mantaq/core': 0.2.0
+      '@mantaq/traversal': 0.1.1
 
-  '@mantaq/traversal@0.1.0':
+  '@mantaq/traversal@0.1.1':
     dependencies:
-      '@mantaq/core': 0.1.0
+      '@mantaq/core': 0.2.0
       '@mantaq/utils': 0.0.2
 
   '@mantaq/utils@0.0.2': {}

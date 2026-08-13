@@ -13,14 +13,14 @@
     "prepare": "vp config"
   },
   "dependencies": {
-    "@mantaq/core": "0.1.0",
-    "@mantaq/sugar": "0.1.0",
+    "@mantaq/core": "0.2.0",
+    "@mantaq/sugar": "0.2.0",
     "lit-html": "^3.2.1",
     "prismjs": "^1.29.0"
   },
   "devDependencies": {
-    "@mantaq/test": "0.1.0",
-    "@mantaq/traversal": "0.1.0",
+    "@mantaq/test": "0.1.1",
+    "@mantaq/traversal": "0.1.1",
     "@types/prismjs": "^1.26.6",
     "@varlock/bumpy": "catalog:",
     "@vitest/browser-playwright": "catalog:",
