@@ -41,6 +41,7 @@ const screens: Record<ScreenName, HTMLElement> = {
   done: $("screen-done"),
   settings: $("screen-settings"),
   credits: $("screen-credits"),
+  error: $("screen-error"),
 };
 
 const TYPE_LABEL: Record<CardType, string> = {
@@ -88,11 +89,10 @@ function applyCodeSettings(settings: CodeSettings): void {
 
 /* ---------- machine wiring ---------- */
 
-type ScreenName = "home" | "review" | "done" | "settings" | "credits";
+type ScreenName = "home" | "review" | "done" | "settings" | "credits" | "error";
 
 let actor: AppActor | null = null;
 let deckIndex: DeckIndex = {};
-let currentScreen: ScreenName = "home";
 
 function send(event: AppEvent): void {
   actor?.send(event);
@@ -140,14 +140,12 @@ function show(name: ScreenName): void {
     el.hidden = k !== name;
     el.scrollTop = 0;
   }
-  currentScreen = name;
   document.documentElement.scrollTop = 0;
   if (window.scrollTo) window.scrollTo(0, 0);
   const inSession = actor?.snapshot().context.session != null;
-  const onSettings = name === "settings";
-  const onCredits = name === "credits";
-  $("btn-back").hidden = onSettings || onCredits ? false : !inSession;
-  $("btn-settings").hidden = onSettings || name === "done" || onCredits;
+  $("btn-back").hidden = name === "home" || name === "error" || (name === "review" && !inSession);
+  $("btn-settings").hidden =
+    name === "settings" || name === "credits" || name === "error" || name === "done";
 }
 
 /* ---------- home ---------- */
@@ -381,6 +379,7 @@ function renderReview(snap: Snapshot<AppContext>, prev: Snapshot<AppContext>): v
   }
   setTopbar(null, deck.title, session.idx, deck.cards.length);
   show("review");
+  $("btn-settings").hidden = grading;
   render(
     reviewTemplate({
       card,
@@ -556,6 +555,39 @@ function renderSettings(ctx: AppContext): void {
   render(settingsTemplate(ctx), screens.settings);
 }
 
+/* ---------- error ---------- */
+
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return String(err);
+}
+
+function renderError(snap: Snapshot<AppContext>): void {
+  const err = snap.error;
+  setTopbar("Something went wrong", "", 0, 0);
+  $("tb-count").hidden = true;
+  $("tb-progress-wrap").hidden = true;
+  show("error");
+  render(
+    html`
+      <div class="error-box">
+        <h2>Something went wrong</h2>
+        <p class="error-sub">The app hit an unrecoverable state error and stopped.</p>
+        <div class="error-detail">
+          <span class="error-reason">${err?.reason ?? "unknown"}</span>
+          ${err?.error != null ? html`<code class="error-msg">${errorMessage(err.error)}</code>` : ""}
+        </div>
+        <button class="primary-btn" @click=${restart}>Restart</button>
+      </div>
+    `,
+    screens.error,
+  );
+}
+
+function restart(): void {
+  boot();
+}
+
 function renderApp(snap: Snapshot<AppContext>, prev: Snapshot<AppContext>): void {
   applyCodeSettings(snap.context.settings);
   const [name] = snap.path;
@@ -563,25 +595,27 @@ function renderApp(snap: Snapshot<AppContext>, prev: Snapshot<AppContext>): void
   else if (name === "done") renderDone(snap);
   else if (name === "settings") renderSettings(snap.context);
   else if (name === "credits") renderCredits();
+  else if (name === "__error") renderError(snap);
   else renderReview(snap, prev);
 }
 
 /* ---------- topbar + keyboard ---------- */
 
 $("btn-back").addEventListener("click", () => {
-  if (currentScreen === "settings") send(closeSettings.create());
+  const state = actor?.snapshot().path[0] ?? "";
+  if (state === "settings") send(closeSettings.create());
   else send(backToHome.create());
 });
 
 $("btn-settings").addEventListener("click", () => send(openSettings.create()));
 
 document.addEventListener("keydown", (e: KeyboardEvent) => {
-  if (currentScreen === "settings" && e.key === "Escape") {
+  const state = actor?.snapshot().path[0] ?? "";
+  if (state === "settings" && e.key === "Escape") {
     e.preventDefault();
     send(closeSettings.create());
     return;
   }
-  const state = actor?.snapshot().path[0] ?? "";
   if (!state.startsWith("review.")) return;
   if (e.key === " " || e.key === "Enter") {
     e.preventDefault();

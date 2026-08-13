@@ -30,7 +30,7 @@ function makeDeck(id: string, count: number): Deck {
 function makeApp(count = 3) {
   const deck = makeDeck("d1", count);
   const clock = new VirtualClock();
-  const actor = createAppActor({ decks: { d1: deck }, clock });
+  const actor = createAppActor({ decks: { d1: deck }, clock, now: () => 1000 });
   return { actor, clock, deck };
 }
 
@@ -96,6 +96,7 @@ describe("zigcards machine", () => {
     expect(snap.lastGrade).toEqual({ known: true });
     expect(snap.stats.reviews).toBe(1);
     expect(snap.progress["d1-0"]).toMatchObject({ seen: 1, known: 1, unknown: 0 });
+    expect(snap.progress["d1-0"].last).toBe(1000);
   });
 
   it("GRADE_DONE advances to the next card after the fly-out", () => {
@@ -108,6 +109,8 @@ describe("zigcards machine", () => {
     clock.advance(140);
     expect(matches(actor, "review.front")).toBe(true);
     expect(actor.snapshot().context.session?.idx).toBe(1);
+    expect(actor.snapshot().context.lastGrade).toBeNull();
+    expect(clock.hasPending()).toBe(false);
   });
 
   it("a second GRADE during the fly-out is dropped", () => {
@@ -133,6 +136,7 @@ describe("zigcards machine", () => {
     expect(snap.stats.reviews).toBe(deck.cards.length);
     expect(snap.session?.known).toBe(2);
     expect(snap.session?.unknown).toBe(2);
+    expect(clock.hasPending()).toBe(false);
   });
 
   it("RESTART_DECK from done reuses the deck with fresh counters", () => {
@@ -165,6 +169,7 @@ describe("zigcards machine", () => {
     clock.advance(1000);
     expect(matches(actor, "home")).toBe(true);
     expect(actor.snapshot().context.session).toBeNull();
+    expect(clock.hasPending()).toBe(false);
   });
 
   it("BACK_TO_HOME from done clears the session", () => {
@@ -206,14 +211,27 @@ describe("zigcards machine", () => {
     expect(snap.stats.reviews).toBe(0);
     clock.advance(1000);
     expect(matches(actor, "home")).toBe(true);
+    expect(clock.hasPending()).toBe(false);
   });
 
-  it("change fires on context-only mutations", () => {
-    const { actor } = makeApp();
-    let changes = 0;
-    actor.on("change", () => (changes += 1));
-    actor.send(resetProgress.create());
-    expect(changes).toBe(2);
+  it("a throwing handler routes into the __error state and drops further sends", () => {
+    const clock = new VirtualClock();
+    // cards is deliberately corrupted so the grade transition throws
+    const badDeck = { ...makeDeck("d1", 2), cards: null } as unknown as Deck;
+    const actor = createAppActor({ decks: { d1: badDeck }, clock });
+    actor.send(openDeck.create({ deckId: "d1" }));
+    actor.send(flip.create());
+    actor.send(grade.create({ known: true }));
+    const snap = actor.snapshot();
+    expect(snap.path).toEqual(["__error"]);
+    expect(snap.error?.reason).toBe("transition");
+    expect(snap.error?.error).toBeInstanceOf(TypeError);
+    // fail-stop: further sends are ignored, effects stay aborted
+    actor.send(backToHome.create());
+    expect(actor.snapshot().path).toEqual(["__error"]);
+    clock.advance(GRADE_FLYOUT_MS * 2);
+    expect(actor.snapshot().path).toEqual(["__error"]);
+    expect(clock.hasPending()).toBe(false);
   });
 
   it("the snapshot carries the full app context", () => {

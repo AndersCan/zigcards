@@ -59,6 +59,7 @@ describe("persistence", () => {
   it("round-trips persisted data", () => {
     const storage = memoryStorage();
     const data: PersistedData = {
+      version: 1,
       cards: { a: { seen: 1, known: 1, unknown: 0, last: 5 } },
       stats: { sessions: 0, reviews: 1, known: 1, unknown: 0 },
       settings: { codeSize: 15, printWidth: 70 },
@@ -81,10 +82,43 @@ describe("persistence", () => {
     const storage = memoryStorage();
     storage.setItem(STORAGE_KEY, JSON.stringify({ stats: { reviews: 4 } }));
     expect(loadPersisted(storage)).toEqual({
+      version: 1,
       cards: {},
       stats: { sessions: 0, reviews: 4, known: 0, unknown: 0 },
       settings: { codeSize: null, printWidth: null },
     });
+  });
+
+  it("validates and clamps persisted data", () => {
+    const storage = memoryStorage();
+    storage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        stats: { reviews: "oops" },
+        cards: { a: { seen: -3, known: 1, unknown: 0, last: "x" } },
+        settings: { codeSize: 999, printWidth: 5 },
+      }),
+    );
+    expect(loadPersisted(storage)).toEqual({
+      version: 1,
+      cards: { a: { seen: 0, known: 1, unknown: 0, last: 0 } },
+      stats: { sessions: 0, reviews: 0, known: 0, unknown: 0 },
+      settings: { codeSize: 20, printWidth: 40 },
+    });
+  });
+
+  it("loads pre-version data (legacy shape without a version field)", () => {
+    const storage = memoryStorage();
+    storage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        cards: {},
+        stats: { sessions: 0, reviews: 2, known: 1, unknown: 1 },
+        settings: { codeSize: null, printWidth: null },
+      }),
+    );
+    expect(loadPersisted(storage)?.version).toBe(1);
+    expect(loadPersisted(storage)?.stats.reviews).toBe(2);
   });
 
   it("persists code settings changes", () => {
@@ -133,6 +167,7 @@ describe("persistence", () => {
     const storage = memoryStorage();
     persistData(
       {
+        version: 1,
         cards: { c1: { seen: 1, known: 1, unknown: 0, last: 9 } },
         stats: { sessions: 0, reviews: 1, known: 1, unknown: 0 },
         settings: { codeSize: 17, printWidth: 55 },
@@ -172,6 +207,7 @@ describe("persistence", () => {
     actor.send(backToHome.create());
     actor.send(resetProgress.create());
     expect(storedStats(storage)).toEqual({
+      version: 1,
       cards: {},
       stats: { sessions: 0, reviews: 0, known: 0, unknown: 0 },
       settings: { codeSize: null, printWidth: null },
@@ -185,6 +221,7 @@ describe("persistence", () => {
     actor.send(grade.create({ known: true }));
     actor.send(reset.create());
     expect(storedStats(storage)).toEqual({
+      version: 1,
       cards: {},
       stats: { sessions: 0, reviews: 0, known: 0, unknown: 0 },
       settings: { codeSize: null, printWidth: null },

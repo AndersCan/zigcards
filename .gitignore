@@ -2,3 +2,6 @@ node_modules/
 dist/
 .vite-hooks/
 .DS_Store
+.pnpm-store/
+.vitest-attachments/
+tests/machine/__screenshots__/

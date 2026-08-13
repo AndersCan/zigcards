@@ -1,4 +1,10 @@
 import type { Deck } from "../types.ts";
+import type { StateRef } from "@mantaq/core";
+
+export type SettingsSource =
+  | StateRef<"home", unknown, false>
+  | StateRef<"review.front", unknown, false>
+  | StateRef<"review.back", unknown, false>;
 
 export interface SessionState {
   deckId: string;
@@ -32,7 +38,7 @@ export interface AppContext {
   progress: Record<string, CardProgress>;
   stats: Stats;
   settings: CodeSettings;
-  settingsFrom: string | null;
+  settingsFrom: SettingsSource | null;
 }
 
 export type DeckIndex = Record<string, Deck>;

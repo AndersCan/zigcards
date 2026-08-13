@@ -37,7 +37,7 @@ import {
   states,
   updateSettings,
 } from "./refs.ts";
-import type { AppContext, CodeSettings, DeckIndex } from "./types.ts";
+import type { AppContext, CodeSettings, DeckIndex, SettingsSource } from "./types.ts";
 
 export const GRADE_FLYOUT_MS = 240;
 
@@ -81,20 +81,20 @@ export function createAppActor(options: AppMachineOptions) {
       };
 
       const leaveToHome = (context: Context<AppContext>) => {
-        context.set(clearSession(context.get()));
+        context.set({ ...clearSession(context.get()), settingsFrom: null });
         return { state: home };
       };
 
       m.on(home, openDeck, (e, { context }) => {
-        if (!decks[e.deckId]) return {};
-        context.set(startSession(context.get(), e.deckId));
+        if (!decks[e.payload.deckId]) return {};
+        context.set(startSession(context.get(), e.payload.deckId));
         return { state: reviewFront };
       });
 
       m.on(reviewFront, flip, () => ({ state: reviewBack }));
 
       m.on(reviewBack, grade, (e, { context }) =>
-        gradeKnown(context, e.known) ? { state: reviewGrading } : {},
+        gradeKnown(context, e.payload.known) ? { state: reviewGrading } : {},
       );
 
       m.on(reviewGrading, gradeDone, (_, { context }) => {
@@ -102,9 +102,16 @@ export function createAppActor(options: AppMachineOptions) {
         const deck = currentDeck(ctx);
         if (!ctx.session || !deck) return { state: done };
         const nextIdx = ctx.session.idx + 1;
-        context.set(advanceSession(ctx));
+        context.set({ ...advanceSession(ctx), lastGrade: null });
         return { state: nextIdx < deck.cards.length ? reviewFront : done };
       });
+
+      // Deliberate drops: registered as no-ops so they don't spam the
+      // "[Actor] no transition" warning (the warning = wiring bug rule).
+      m.on(reviewBack, flip, () => ({}));
+      m.on(reviewFront, grade, () => ({}));
+      m.on(reviewGrading, grade, () => ({}));
+      m.on(reviewGrading, openSettings, () => ({}));
 
       m.on(reviewFront, backToHome, (_, { context }) => leaveToHome(context));
       m.on(reviewBack, backToHome, (_, { context }) => leaveToHome(context));
@@ -122,25 +129,21 @@ export function createAppActor(options: AppMachineOptions) {
       });
 
       const openSettingsStep =
-        (source: string) =>
+        (from: SettingsSource) =>
         (_: unknown, { context }: { context: Context<AppContext> }) => {
-          context.set({ ...context.get(), settingsFrom: source });
+          context.set({ ...context.get(), settingsFrom: from });
           return { state: settings };
         };
 
-      const settingsReturn = (source: string | null) => {
-        if (source === "review.front") return reviewFront;
-        if (source === "review.back") return reviewBack;
-        return home;
-      };
+      m.on(home, openSettings, openSettingsStep(home));
+      m.on(reviewFront, openSettings, openSettingsStep(reviewFront));
+      m.on(reviewBack, openSettings, openSettingsStep(reviewBack));
 
-      m.on(home, openSettings, openSettingsStep("home"));
-      m.on(reviewFront, openSettings, openSettingsStep("review.front"));
-      m.on(reviewBack, openSettings, openSettingsStep("review.back"));
-
-      m.on(settings, closeSettings, (_, { context }) => ({
-        state: settingsReturn(context.get().settingsFrom),
-      }));
+      m.on(settings, closeSettings, (_, { context }) => {
+        const ctx = context.get();
+        context.set({ ...ctx, settingsFrom: null });
+        return { state: ctx.settingsFrom ?? home };
+      });
       m.on(settings, backToHome, (_, { context }) => leaveToHome(context));
 
       m.on(home, openCredits, () => ({ state: credits }));
@@ -148,8 +151,8 @@ export function createAppActor(options: AppMachineOptions) {
 
       m.onAny(updateSettings, (e, { context }) => {
         const patch: Partial<CodeSettings> = {};
-        if (e.codeSize !== undefined) patch.codeSize = e.codeSize;
-        if (e.printWidth !== undefined) patch.printWidth = e.printWidth;
+        if (e.payload.codeSize !== undefined) patch.codeSize = e.payload.codeSize;
+        if (e.payload.printWidth !== undefined) patch.printWidth = e.payload.printWidth;
         context.set(updateCodeSettings(context.get(), patch));
         return {};
       });

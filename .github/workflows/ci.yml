@@ -17,7 +17,7 @@ jobs:
           node-version: "24"
           cache: true
 
-      - run: vp install
+      - run: vp install --frozen-lockfile
 
       # Content validation compares decks against the ziglings sources, which
       # are not vendored. Clone them and apply the solution patches (heal).

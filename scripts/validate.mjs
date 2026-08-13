@@ -6,8 +6,9 @@ const decksDir = new URL("../decks/", import.meta.url);
 
 // ziglings sources are not vendored; point at a checkout via env (CI clones it).
 // The expected-output answer key IS vendored (scripts/data/ziglings-outputs.json).
-const ZIGLINGS_DIR = process.env.ZIGLINGS_DIR ?? "/Users/anders/git/ziglings";
+const ZIGLINGS_DIR = process.env.ZIGLINGS_DIR ?? path.resolve("../ziglings");
 const ZIGLINGS_HEALED = process.env.ZIGLINGS_HEALED ?? "/tmp/healed";
+const SKIP_SOURCES = process.argv.includes("--skip-sources");
 
 const deckFiles = fs
   .readdirSync(decksDir)
@@ -103,7 +104,15 @@ for (const deck of decks) {
     else {
       const file = `${m[1]}_${c.source.split("_").slice(1).join("_")}.zig`;
       if (!sourcesAvailable) {
-        warnings.push(`ziglings sources not found at ${ZIGLINGS_DIR} — skipping source checks`);
+        if (SKIP_SOURCES) {
+          warnings.push(
+            `ziglings sources not found at ${ZIGLINGS_DIR} — skipping source checks (--skip-sources)`,
+          );
+        } else {
+          errors.push(
+            `ziglings sources not found at ${ZIGLINGS_DIR} — set ZIGLINGS_DIR/ZIGLINGS_HEALED or run with --skip-sources to skip source-fidelity checks`,
+          );
+        }
       } else {
         if (!hasSource(file)) {
           errors.push(`${deck.id}/${c.id}: source file not found: ${file}`);
