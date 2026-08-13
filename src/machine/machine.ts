@@ -48,12 +48,10 @@ export interface AppMachineOptions {
   decks: DeckIndex;
   clock?: Clock;
   context?: AppContext;
-  now?: () => number;
 }
 
 export function createAppActor(options: AppMachineOptions) {
   const { decks } = options;
-  const now = options.now ?? (() => Date.now());
 
   const actor = new Actor({
     inputs,
@@ -72,11 +70,11 @@ export function createAppActor(options: AppMachineOptions) {
         return deck.cards[ctx.session.idx] ?? null;
       };
 
-      const gradeKnown = (context: Context<AppContext>, known: boolean): boolean => {
+      const gradeKnown = (context: Context<AppContext>, known: boolean, now: number): boolean => {
         const ctx = context.get();
         const card = currentCard(ctx);
         if (!ctx.session || !card) return false;
-        context.set(recordReview(gradeCard(ctx, known), card.id, known, now()));
+        context.set(recordReview(gradeCard(ctx, known), card.id, known, now));
         return true;
       };
 
@@ -93,8 +91,8 @@ export function createAppActor(options: AppMachineOptions) {
 
       m.on(reviewFront, flip, () => ({ state: reviewBack }));
 
-      m.on(reviewBack, grade, (e, { context }) =>
-        gradeKnown(context, e.payload.known) ? { state: reviewGrading } : {},
+      m.on(reviewBack, grade, (e, { context, actor }) =>
+        gradeKnown(context, e.payload.known, actor.clock.now()) ? { state: reviewGrading } : {},
       );
 
       m.on(reviewGrading, gradeDone, (_, { context }) => {

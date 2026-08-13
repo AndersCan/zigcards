@@ -30,7 +30,7 @@ function makeDeck(id: string, count: number): Deck {
 function makeApp(count = 3) {
   const deck = makeDeck("d1", count);
   const clock = new VirtualClock();
-  const actor = createAppActor({ decks: { d1: deck }, clock, now: () => 1000 });
+  const actor = createAppActor({ decks: { d1: deck }, clock });
   return { actor, clock, deck };
 }
 
@@ -86,9 +86,10 @@ describe("zigcards machine", () => {
   });
 
   it("GRADE records the review and enters the grading fly-out", () => {
-    const { actor } = makeApp();
+    const { actor, clock } = makeApp();
     actor.send(openDeck.create({ deckId: "d1" }));
     actor.send(flip.create());
+    clock.advance(500);
     actor.send(grade.create({ known: true }));
     expect(matches(actor, "review.grading")).toBe(true);
     const snap = actor.snapshot().context;
@@ -96,7 +97,7 @@ describe("zigcards machine", () => {
     expect(snap.lastGrade).toEqual({ known: true });
     expect(snap.stats.reviews).toBe(1);
     expect(snap.progress["d1-0"]).toMatchObject({ seen: 1, known: 1, unknown: 0 });
-    expect(snap.progress["d1-0"].last).toBe(1000);
+    expect(snap.progress["d1-0"].last).toBe(500);
   });
 
   it("GRADE_DONE advances to the next card after the fly-out", () => {

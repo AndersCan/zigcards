@@ -18,7 +18,7 @@ function makeDeck(id: string, count: number): Deck {
 function makeApp(count = 3) {
   const deck = makeDeck("d1", count);
   const clock = new VirtualClock();
-  const actor = createAppActor({ decks: { d1: deck }, clock, now: () => 1000 });
+  const actor = createAppActor({ decks: { d1: deck }, clock });
   return { actor, clock, deck };
 }
 
