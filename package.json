@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@mantaq/core": "0.2.0",
-    "@mantaq/sugar": "0.2.0",
+    "@mantaq/sugar": "0.3.0",
     "lit-html": "^3.2.1",
     "prismjs": "^1.29.0"
   },

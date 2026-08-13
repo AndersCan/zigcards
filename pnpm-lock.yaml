@@ -32,8 +32,8 @@ importers:
         specifier: 0.2.0
         version: 0.2.0
       '@mantaq/sugar':
-        specifier: 0.2.0
-        version: 0.2.0
+        specifier: 0.3.0
+        version: 0.3.0
       lit-html:
         specifier: ^3.2.1
         version: 3.3.3
@@ -92,8 +92,8 @@ packages:
   '@mantaq/core@0.2.0':
     resolution: {integrity: sha512-UBifMBqd0btspp60VeyBlO+XC6GpghaW2O6zKrS2ksvO3DZHVH0kFMg8tmZu+b9zwGKTMoySTyF600UrIYx6TA==}
 
-  '@mantaq/sugar@0.2.0':
-    resolution: {integrity: sha512-AtyyijNopd0UXqWL5VIbLL/fnUUymnmzOf/bYMP9IHmSB4IiTiAfaA5NbXEwUnWJmUbl811pQHdC55OGfVjRMQ==}
+  '@mantaq/sugar@0.3.0':
+    resolution: {integrity: sha512-TYQz2ocsz4gLGdS2kqMKM+bpQfevjR0wq8zWeK7TWIzLEhhJ85CG22CtvcZThNShVxPrsEzWer55rhmzgpJFqw==}
 
   '@mantaq/test@0.1.1':
     resolution: {integrity: sha512-wg4S6sry5etWNdLbjXKdo9nyCsTLz0jCo9bIykdG7OM0m1p7d+cTS6Fg7g9shI5P/GqBbEYL5hT1swpBmRuGug==}
@@ -1074,7 +1074,7 @@ snapshots:
     dependencies:
       '@mantaq/utils': 0.0.2
 
-  '@mantaq/sugar@0.2.0':
+  '@mantaq/sugar@0.3.0':
     dependencies:
       '@mantaq/core': 0.2.0
       '@mantaq/utils': 0.0.2
