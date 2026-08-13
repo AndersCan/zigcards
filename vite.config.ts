@@ -8,6 +8,9 @@ export default defineConfig({
   build: {
     target: "es2020",
   },
+  optimizeDeps: {
+    include: ["prismjs/components/prism-zig.js", "prismjs/components/prism-python.js"],
+  },
   fmt: {},
   lint: {
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],

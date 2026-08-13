@@ -31,7 +31,7 @@ test("home lists every deck, grouped into sections", async () => {
   expect(count(".deck-row")).toBe(window.ZigCards.decks.length);
   expect(el("#tb-title").textContent).toBe("ZigCards");
   const heads = [...document.querySelectorAll(".section-title")].map((n) => n.textContent);
-  expect(heads).toEqual(["Prerequisites", "Zig"]);
+  expect(heads).toEqual(["Prerequisites", "Zig", "Mojo"]);
 });
 
 test("starting a deck shows the first card and progress", async () => {

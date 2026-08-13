@@ -1,6 +1,8 @@
 export type CardType = "output" | "fix" | "concept";
 
-export type SectionId = "prerequisites" | "zig";
+export type SectionId = "prerequisites" | "zig" | "mojo";
+
+export type Language = "zig" | "mojo";
 
 export interface Section {
   id: SectionId;
@@ -26,5 +28,6 @@ export interface Deck {
   order: number;
   blurb: string;
   section: SectionId;
+  language?: Language;
   cards: Card[];
 }

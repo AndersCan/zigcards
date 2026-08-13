@@ -2,6 +2,7 @@ import { html, render, type TemplateResult } from "lit-html";
 import { unsafeHTML } from "lit-html/directives/unsafe-html.js";
 import Prism from "prismjs";
 import "prismjs/components/prism-zig.js";
+import "prismjs/components/prism-python.js";
 import type { Snapshot } from "@mantaq/core";
 import {
   attachPersistence,
@@ -55,13 +56,13 @@ const DEFAULT_PRINT_WIDTH = 80;
 
 /* ---------- code rendering (Prism) ---------- */
 
-function zigGrammar(): Prism.Grammar {
-  return Prism.languages.zig ?? Prism.languages.clike;
+function grammarFor(language: string): Prism.Grammar {
+  return Prism.languages[language] ?? Prism.languages.zig ?? Prism.languages.clike;
 }
 
-function codeBlock(code: string): TemplateResult {
-  const h = Prism.highlight(code, zigGrammar(), "zig");
-  return html`<pre class="code"><code class="language-zig">${unsafeHTML(h)}</code></pre>`;
+function codeBlock(code: string, language = "zig"): TemplateResult {
+  const h = Prism.highlight(code, grammarFor(language), language);
+  return html`<pre class="code"><code class="language-${language}">${unsafeHTML(h)}</code></pre>`;
 }
 
 function inlineText(text: string): TemplateResult {
@@ -162,7 +163,8 @@ function homeTemplate(ctx: AppContext): TemplateResult {
     <div class="hero">
       <h1>ZigCards</h1>
       <p>
-        Flashcards for learning Zig &mdash; with the memory basics JavaScript never made you learn.
+        Flashcards for learning Zig and Mojo &mdash; with the memory basics JavaScript never made
+        you learn.
       </p>
     </div>
     ${sections.map(
@@ -232,6 +234,8 @@ export function resetToHome(): void {
 
 const ZIGLINGS_URL = "https://codeberg.org/ziglings/exercises";
 const ZIG_URL = "https://ziglang.org";
+const MOJO_QUEST_URL = "https://github.com/modular/mojo-quest";
+const MOJO_URL = "https://mojolang.org";
 
 function creditsTemplate(): TemplateResult {
   return html`
@@ -277,6 +281,33 @@ function creditsTemplate(): TemplateResult {
     </div>
 
     <div class="credits-block">
+      <h3>mojo-quest</h3>
+      <p>
+        The <b>Mojo</b> section of this app is built from
+        <a href="${MOJO_QUEST_URL}" target="_blank" rel="noopener noreferrer">mojo-quest</a> &mdash;
+        a browser game by
+        <a href="${MOJO_URL}" target="_blank" rel="noopener noreferrer">Modular</a> that teaches
+        Mojo by fixing issues in a fictional robotics company. We use it for inspiration: the
+        tickets' teaching sequence and code are the source material for that deck.
+      </p>
+      <p>
+        mojo-quest is licensed under the
+        <a href="https://llvm.org/LICENSE.txt" target="_blank" rel="noopener noreferrer"
+          >Apache License v2.0 with LLVM Exceptions</a
+        >
+        &copy; 2026 Modular Inc.
+      </p>
+    </div>
+
+    <div class="credits-block">
+      <h3>Mojo</h3>
+      <p>
+        Mojo is a Python-superset systems language for AI/ML by Modular. Learn more at
+        <a href="${MOJO_URL}" target="_blank" rel="noopener noreferrer">mojolang.org</a>.
+      </p>
+    </div>
+
+    <div class="credits-block">
       <h3>Tech</h3>
       <p>
         Built with <a href="https://lit.dev" target="_blank" rel="noopener noreferrer">lit-html</a>,
@@ -304,10 +335,11 @@ interface ReviewView {
   revealed: boolean;
   grading: boolean;
   lastGrade: { known: boolean } | null;
+  language: string;
 }
 
 function reviewTemplate(v: ReviewView): TemplateResult {
-  const { card, revealed, grading, lastGrade } = v;
+  const { card, revealed, grading, lastGrade, language } = v;
   const known = lastGrade?.known ?? false;
   const flyOut = grading
     ? `transform: translateX(${(known ? window.innerWidth : -window.innerWidth) * 1.2}px) rotate(${known ? 8 : -8}deg); opacity: 0; transition: transform 240ms ease, opacity 240ms ease;`
@@ -327,10 +359,10 @@ function reviewTemplate(v: ReviewView): TemplateResult {
       <div class="card-inner">
         <span class="card-type ${card.type}">${TYPE_LABEL[card.type]}</span>
         <div class="card-front">${inlineText(card.front)}</div>
-        ${card.code ? codeBlock(card.code) : ""}
+        ${card.code ? codeBlock(card.code, language) : ""}
         <div id="card-back" class="card-back" ?hidden=${!revealed}>
           <div class="answer">${inlineText(card.back)}</div>
-          ${card.backCode ? codeBlock(card.backCode) : ""}
+          ${card.backCode ? codeBlock(card.backCode, language) : ""}
           ${
             card.explanation ? html`<div class="explain">${inlineText(card.explanation)}</div>` : ""
           }
@@ -386,6 +418,7 @@ function renderReview(snap: Snapshot<AppContext>, prev: Snapshot<AppContext>): v
       revealed,
       grading,
       lastGrade: snap.context.lastGrade,
+      language: deck.language ?? "zig",
     }),
     screens.review,
   );

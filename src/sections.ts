@@ -13,4 +13,10 @@ export const SECTIONS: Section[] = [
     order: 1,
     blurb: "The Zig curriculum, inspired by ziglings",
   },
+  {
+    id: "mojo",
+    title: "Mojo",
+    order: 2,
+    blurb: "The Mojo curriculum, built from mojo-quest",
+  },
 ];

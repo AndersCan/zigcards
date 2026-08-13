@@ -10,6 +10,7 @@ import deckSwitch from "../decks/06-switch-unreachable.ts";
 import deckEnumsStructs from "../decks/07-enums-structs.ts";
 import deckPointers from "../decks/08-pointers.ts";
 import deckOptionals from "../decks/09-optionals.ts";
+import deckMojo from "../decks/10-mojo.ts";
 
 const decks: Deck[] = [
   deckMemoryBasics,
@@ -23,6 +24,7 @@ const decks: Deck[] = [
   deckEnumsStructs,
   deckPointers,
   deckOptionals,
+  deckMojo,
 ];
 
 window.ZigCards = { decks };

@@ -8,6 +8,9 @@ const decksDir = new URL("../decks/", import.meta.url);
 // The expected-output answer key IS vendored (scripts/data/ziglings-outputs.json).
 const ZIGLINGS_DIR = process.env.ZIGLINGS_DIR ?? path.resolve("../ziglings");
 const ZIGLINGS_HEALED = process.env.ZIGLINGS_HEALED ?? "/tmp/healed";
+// mojo-quest sources are likewise not vendored; point at a checkout via env.
+// The expected-output answer key IS vendored (scripts/data/mojo-quest-outputs.json).
+const MOJO_QUEST_DIR = process.env.MOJO_QUEST_DIR ?? path.resolve("../mojo-quest");
 const SKIP_SOURCES = process.argv.includes("--skip-sources");
 
 const deckFiles = fs
@@ -26,8 +29,16 @@ const key = JSON.parse(
 );
 const keyByFile = new Map(key.map((e) => [e.file, e.output]));
 
+const mojoKey = JSON.parse(
+  fs.readFileSync(new URL("./data/mojo-quest-outputs.json", import.meta.url), "utf8"),
+);
+const mojoKeyByFile = new Map(mojoKey.map((e) => [e.file, e.output]));
+
 const exercisesDir = path.join(ZIGLINGS_DIR, "exercises");
 const sourcesAvailable = fs.existsSync(exercisesDir);
+
+const mojoExercisesDir = path.join(MOJO_QUEST_DIR, "exercises");
+const mojoSourcesAvailable = fs.existsSync(mojoExercisesDir);
 
 let errors = [];
 const warnings = [];
@@ -72,10 +83,13 @@ function hasSource(file) {
 for (const deck of decks) {
   if (!deck.id || !/^[a-z0-9-]+$/.test(deck.id)) errors.push(`${deck.id}: bad deck id`);
   if (typeof deck.order !== "number") errors.push(`${deck.id}: missing numeric order`);
-  if (!["prerequisites", "zig"].includes(deck.section))
+  if (!["prerequisites", "zig", "mojo"].includes(deck.section))
     errors.push(`${deck.id}: missing or invalid section '${deck.section}'`);
+  if (deck.language != null && !["zig", "mojo"].includes(deck.language))
+    errors.push(`${deck.id}: invalid language '${deck.language}'`);
   if (!Array.isArray(deck.cards) || deck.cards.length === 0) errors.push(`${deck.id}: no cards`);
   const isPrereq = deck.section === "prerequisites";
+  const isMojo = deck.section === "mojo";
   const idsSeen = new Set();
   for (const c of deck.cards) {
     cardCount++;
@@ -96,6 +110,58 @@ for (const deck of decks) {
         errors.push(`${deck.id}/${c.id}: prereq cards must be 'concept' (got '${c.type}')`);
       if (c.code || c.backCode)
         errors.push(`${deck.id}/${c.id}: prereq cards must not carry Zig code`);
+      continue;
+    }
+
+    if (isMojo) {
+      const m = /^mojo-quest (MQ-\d+)$/.exec(c.source || "");
+      if (!m) errors.push(`${deck.id}/${c.id}: bad source '${c.source}'`);
+      else {
+        const file = m[1].replace("-", "_") + ".mojo";
+        if (!mojoSourcesAvailable) {
+          if (SKIP_SOURCES) {
+            warnings.push(
+              `mojo-quest sources not found at ${MOJO_QUEST_DIR} — skipping source checks (--skip-sources)`,
+            );
+          } else {
+            errors.push(
+              `mojo-quest sources not found at ${MOJO_QUEST_DIR} — set MOJO_QUEST_DIR or run with --skip-sources to skip source-fidelity checks`,
+            );
+          }
+        } else {
+          const solvedPath = path.join(mojoExercisesDir, file);
+          if (!fs.existsSync(solvedPath)) {
+            errors.push(`${deck.id}/${c.id}: source file not found: ${file}`);
+          }
+          for (const f of ["code", "backCode"]) {
+            if (c[f]) {
+              const srcLines = lineSet(fs.readFileSync(solvedPath, "utf8"));
+              const deckLines = lineSet(c[f]);
+              const missing = [...deckLines].filter((l) => !srcLines.has(l));
+              if (missing.length) {
+                errors.push(
+                  `${deck.id}/${c.id}: '${f}' contains lines not in ${file}: ${missing.slice(0, 4).join(" | ")}`,
+                );
+              }
+            }
+          }
+        }
+        if (c.type === "output") {
+          const expected = mojoKeyByFile.get(file);
+          if (expected !== undefined && expected !== "") {
+            const inBack = norm(c.back).includes(norm(expected));
+            if (!inBack) {
+              errors.push(
+                `${deck.id}/${c.id}: output mismatch. expected "${expected}" got back "${c.back}"`,
+              );
+            }
+          } else {
+            warnings.push(
+              `${deck.id}/${c.id}: no answer-key output for ${file} (back: "${c.back}")`,
+            );
+          }
+        }
+      }
       continue;
     }
 
