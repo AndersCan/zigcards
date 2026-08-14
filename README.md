@@ -50,8 +50,10 @@ test run.
 guide.md          Deck-authoring contract (READ before writing content)
 vite.config.ts    Vite+ toolchain config (dev/build/test/lint/fmt/hooks)
 src/types.ts      Shared types (Deck, Card)
-src/app.ts        App UI (lit-html templates) + review logic
-src/store.ts      Local progress store (localStorage)
+src/app.ts        App UI (lit-html templates)
+src/machine/      Review engine: mantaq state machine, SM-2 SRS scheduling,
+                  session queues, progress + day history, localStorage
+                  persistence (src/machine/*.ts)
 src/main.ts       Entry point; registers the decks
 src/globals.d.ts  window.ZigCards + prism component declarations
 decks/*.ts        Deck data modules (typed ES modules, one per teaching band)
@@ -66,20 +68,28 @@ transpiled by Vite — no separate emit step.
 
 ## Decks
 
-| #   | Section       | Deck                           | Content                            |
-| --- | ------------- | ------------------------------ | ---------------------------------- |
-| 0   | Prerequisites | Memory basics                  | bits, bytes, addresses, references |
-| 0   | Prerequisites | Stack & heap                   | call frames, lifetimes, the GC     |
-| 1   | Zig           | Hello, Zig                     | ziglings 001–002                   |
-| 2   | Zig           | Values: types, arrays, strings | ziglings 003–008                   |
-| 3   | Zig           | Control Flow                   | ziglings 009–017                   |
-| 4   | Zig           | Functions                      | ziglings 018–020                   |
-| 5   | Zig           | Errors & defer                 | ziglings 021–029                   |
-| 6   | Zig           | switch, unreachable, if-error  | ziglings 030–034                   |
-| 7   | Zig           | Enums & structs                | ziglings 035–038                   |
-| 8   | Zig           | Pointers                       | ziglings 039–044                   |
-| 9   | Zig           | Optionals                      | ziglings 045–046                   |
-| 1   | Mojo          | Mojo                           | mojo-quest MQ-101–MQ-951           |
+| #   | Section       | Deck                            | Content                            |
+| --- | ------------- | ------------------------------- | ---------------------------------- |
+| 0   | Prerequisites | Memory basics                   | bits, bytes, addresses, references |
+| 0   | Prerequisites | Stack & heap                    | call frames, lifetimes, the GC     |
+| 1   | Zig           | Hello, Zig                      | ziglings 001–002                   |
+| 2   | Zig           | Values: types, arrays, strings  | ziglings 003–008                   |
+| 3   | Zig           | Control Flow                    | ziglings 009–017                   |
+| 4   | Zig           | Functions                       | ziglings 018–020                   |
+| 5   | Zig           | Errors & defer                  | ziglings 021–029                   |
+| 6   | Zig           | switch, unreachable, if-error   | ziglings 030–034                   |
+| 7   | Zig           | Enums & structs                 | ziglings 035–038                   |
+| 8   | Zig           | Pointers                        | ziglings 039–044                   |
+| 9   | Zig           | Optionals                       | ziglings 045–046                   |
+| 1   | Mojo          | Mojo: basics & functions        | mojo-quest MQ-1xx                  |
+| 2   | Mojo          | Mojo: variables & collections   | mojo-quest MQ-2xx                  |
+| 3   | Mojo          | Mojo: operators & control flow  | mojo-quest MQ-3xx                  |
+| 4   | Mojo          | Mojo: errors & context managers | mojo-quest MQ-4xx                  |
+| 5   | Mojo          | Mojo: structs & modules         | mojo-quest MQ-5xx                  |
+| 6   | Mojo          | Mojo: value ownership           | mojo-quest MQ-6xx                  |
+| 7   | Mojo          | Mojo: value lifecycle           | mojo-quest MQ-7xx                  |
+| 8   | Mojo          | Mojo: metaprogramming           | mojo-quest MQ-8xx                  |
+| 9   | Mojo          | Mojo: pointers & testing        | mojo-quest MQ-9xx                  |
 
 The **Prerequisites** section is original memory/foundations content written
 for this app — the parts a JavaScript developer never had to think about. The
@@ -116,12 +126,25 @@ The ziglings and mojo-quest sources are not vendored; point at checkouts via
 `ZIGLINGS_DIR`/`ZIGLINGS_HEALED` and `MOJO_QUEST_DIR` (defaults: `../ziglings`,
 `/tmp/healed`, `../mojo-quest`).
 
+## Review engine
+
+- **Spaced repetition (SM-2 flavored).** Grading a card "known" schedules the
+  next review: 1 day, then 3 days, then ~`interval × ease` (ease starts at
+  2.5, ±0.1 per grade, floor 1.3), capped at 365 days. Grading "unknown"
+  schedules a 1-day relearning pass and counts a lapse.
+- **Due-based sessions.** A session queue is built at open time from new +
+  due cards, in deck order unless shuffle is enabled in settings. Skipping a
+  card re-queues it to the end; backing out pauses the session, and opening
+  the deck later resumes it.
+- **Review missed.** Unknown cards are collected per session; the done screen
+  offers a "Review missed" drill-down.
+- **Progress & stats.** Per-card progress (seen/known/unknown, last review,
+  due date, state) drives deck-detail views and home badges; per-day history
+  feeds streaks and the stats screen.
+
 ## Scope notes (current phase)
 
 - Review UI + core deck content only.
-- **No SRS scheduler yet** — sessions are deck-ordered; know/didn't-know
-  grading only updates per-card progress and session stats. Scheduling (SM-2
-  or FSRS) is a later phase.
 - The grading/feedback loop and multi-agent content pipeline from the original
   product spec are intentionally out of scope for this build.
 

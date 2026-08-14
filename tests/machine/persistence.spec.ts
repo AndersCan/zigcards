@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import { VirtualClock } from "@mantaq/core";
+import { DAY_MS } from "../../src/machine/context.ts";
 import { GRADE_FLYOUT_MS, createAppActor } from "../../src/machine/machine.ts";
 import {
   attachPersistence,
@@ -16,17 +17,21 @@ import {
   openDeck,
   reset,
   resetProgress,
+  skip,
   updateSettings,
 } from "../../src/machine/refs.ts";
 import type { Card, Deck } from "../../src/types.ts";
 
-function memoryStorage(): StorageLike & { data: Map<string, string> } {
+function memoryStorage(): StorageLike & { data: Map<string, string>; writes: () => number } {
   const data = new Map<string, string>();
+  let writes = 0;
   return {
     data,
+    writes: () => writes,
     getItem: (key) => data.get(key) ?? null,
     setItem: (key, value) => {
       data.set(key, value);
+      writes += 1;
     },
   };
 }
@@ -51,18 +56,53 @@ function boot(count = 3) {
   return { actor, clock, storage, deck };
 }
 
-function storedStats(storage: StorageLike & { data: Map<string, string> }): PersistedData {
+function storedData(storage: StorageLike & { data: Map<string, string> }): PersistedData {
   return JSON.parse(storage.data.get(STORAGE_KEY) ?? "{}") as PersistedData;
 }
 
+function v2Empty(): PersistedData {
+  return {
+    version: 2,
+    cards: {},
+    stats: { sessions: 0, reviews: 0, known: 0, unknown: 0 },
+    history: [],
+    settings: { codeSize: null, printWidth: null, shuffle: false },
+    session: null,
+  };
+}
+
 describe("persistence", () => {
-  it("round-trips persisted data", () => {
+  it("round-trips v2 persisted data", () => {
     const storage = memoryStorage();
     const data: PersistedData = {
-      version: 1,
-      cards: { a: { seen: 1, known: 1, unknown: 0, last: 5 } },
-      stats: { sessions: 0, reviews: 1, known: 1, unknown: 0 },
-      settings: { codeSize: 15, printWidth: 70 },
+      version: 2,
+      cards: {
+        a: {
+          seen: 2,
+          known: 1,
+          unknown: 1,
+          last: 5,
+          state: "relearning",
+          due: 5 + DAY_MS,
+          interval: 1,
+          ease: 2.4,
+          reps: 0,
+          lapses: 1,
+        },
+      },
+      stats: { sessions: 1, reviews: 2, known: 1, unknown: 1 },
+      history: [{ day: "2026-08-01", reviews: 2, known: 1, unknown: 1 }],
+      settings: { codeSize: 15, printWidth: 70, shuffle: true },
+      session: {
+        deckId: "d1",
+        order: [0, 1],
+        idx: 1,
+        known: 1,
+        unknown: 0,
+        skipped: 0,
+        skippedCards: [],
+        missed: [],
+      },
     };
     persistData(data, storage);
     expect(loadPersisted(storage)).toEqual(data);
@@ -78,14 +118,12 @@ describe("persistence", () => {
     expect(loadPersisted(storage)).toBeNull();
   });
 
-  it("hydrates defaults for missing keys", () => {
+  it("hydrates defaults for missing keys (v1 data shape)", () => {
     const storage = memoryStorage();
     storage.setItem(STORAGE_KEY, JSON.stringify({ stats: { reviews: 4 } }));
     expect(loadPersisted(storage)).toEqual({
-      version: 1,
-      cards: {},
+      ...v2Empty(),
       stats: { sessions: 0, reviews: 4, known: 0, unknown: 0 },
-      settings: { codeSize: null, printWidth: null },
     });
   });
 
@@ -95,61 +133,112 @@ describe("persistence", () => {
       STORAGE_KEY,
       JSON.stringify({
         stats: { reviews: "oops" },
-        cards: { a: { seen: -3, known: 1, unknown: 0, last: "x" } },
-        settings: { codeSize: 999, printWidth: 5 },
+        cards: {
+          a: { seen: -3, known: 1, unknown: 0, last: "x", state: "bogus", ease: 99 },
+        },
+        settings: { codeSize: 999, printWidth: 5, shuffle: "yes" },
+        session: { deckId: "d1", order: [0, "x"], idx: 50, missed: [1] },
       }),
     );
-    expect(loadPersisted(storage)).toEqual({
-      version: 1,
-      cards: { a: { seen: 0, known: 1, unknown: 0, last: 0 } },
-      stats: { sessions: 0, reviews: 0, known: 0, unknown: 0 },
-      settings: { codeSize: 20, printWidth: 40 },
+    const loaded = loadPersisted(storage);
+    expect(loaded?.cards.a).toEqual({
+      seen: 0,
+      known: 1,
+      unknown: 0,
+      last: 0,
+      state: "new",
+      due: 0,
+      interval: 0,
+      ease: 3.0,
+      reps: 0,
+      lapses: 0,
+    });
+    expect(loaded?.stats).toEqual({ sessions: 0, reviews: 0, known: 0, unknown: 0 });
+    expect(loaded?.settings).toEqual({ codeSize: 20, printWidth: 40, shuffle: false });
+    expect(loaded?.session).toEqual({
+      deckId: "d1",
+      order: [0],
+      idx: 0,
+      known: 0,
+      unknown: 0,
+      skipped: 0,
+      skippedCards: [],
+      missed: [],
     });
   });
 
-  it("loads pre-version data (legacy shape without a version field)", () => {
+  it("migrates v1 cards into a due-now schedule", () => {
     const storage = memoryStorage();
     storage.setItem(
       STORAGE_KEY,
       JSON.stringify({
-        cards: {},
-        stats: { sessions: 0, reviews: 2, known: 1, unknown: 1 },
-        settings: { codeSize: null, printWidth: null },
+        cards: { a: { seen: 3, known: 2, unknown: 1, last: 500 } },
+        stats: { sessions: 0, reviews: 3, known: 2, unknown: 1 },
       }),
     );
-    expect(loadPersisted(storage)?.version).toBe(1);
-    expect(loadPersisted(storage)?.stats.reviews).toBe(2);
+    const loaded = loadPersisted(storage);
+    expect(loaded?.cards.a).toEqual({
+      seen: 3,
+      known: 2,
+      unknown: 1,
+      last: 500,
+      state: "review",
+      due: 500,
+      interval: 0,
+      ease: 2.5,
+      reps: 0,
+      lapses: 0,
+    });
+    expect(loaded?.history).toEqual([]);
+    expect(loaded?.session).toBeNull();
   });
 
-  it("persists code settings changes", () => {
+  it("persists settings changes including shuffle", () => {
     const { actor, storage } = boot();
     actor.send(openDeck.create({ deckId: "d1" }));
     actor.send(flip.create());
-    expect(storage.data.has(STORAGE_KEY)).toBe(false);
-    actor.send(updateSettings.create({ codeSize: 16, printWidth: 60 }));
-    expect(storedStats(storage).settings).toEqual({ codeSize: 16, printWidth: 60 });
+    // opening a session is persisted so it can be resumed
+    expect(storage.writes()).toBe(1);
+    actor.send(updateSettings.create({ codeSize: 16, printWidth: 60, shuffle: true }));
+    expect(storedData(storage).settings).toEqual({ codeSize: 16, printWidth: 60, shuffle: true });
   });
 
-  it("writes only when progress or stats change", () => {
+  it("writes only when persisted data changes", () => {
     const { actor, storage } = boot();
     actor.send(openDeck.create({ deckId: "d1" }));
+    expect(storage.writes()).toBe(1);
     actor.send(flip.create());
-    expect(storage.data.has(STORAGE_KEY)).toBe(false);
+    expect(storage.writes()).toBe(1); // revealing a card changes nothing persisted
     actor.send(grade.create({ known: true }));
-    expect(storedStats(storage).stats.reviews).toBe(1);
+    expect(storedData(storage).stats.reviews).toBe(1);
+    expect(storage.writes()).toBe(2);
   });
 
-  it("advancing to the next card does not rewrite storage", () => {
-    const { actor, clock, storage } = boot();
+  it("persists the resume position as the session advances", () => {
+    const { actor, clock, storage, deck } = boot(3);
     actor.send(openDeck.create({ deckId: "d1" }));
     actor.send(flip.create());
     actor.send(grade.create({ known: true }));
-    const writes = storage.data.size;
     clock.advance(GRADE_FLYOUT_MS);
-    expect(storage.data.size).toBe(writes);
+    expect(storedData(storage).session?.idx).toBe(1);
+    expect(storedData(storage).session?.order).toEqual(deck.cards.map((_, i) => i));
   });
 
-  it("persists the full review tally", () => {
+  it("SKIP persists the rotated order and the skipped counter", () => {
+    const { actor, clock, storage } = boot(3);
+    actor.send(openDeck.create({ deckId: "d1" }));
+    actor.send(skip.create());
+    const stored = storedData(storage);
+    expect(stored.session?.order).toEqual([1, 2, 0]);
+    expect(stored.session?.idx).toBe(0);
+    expect(stored.session?.skipped).toBe(1);
+    expect(stored.session?.skippedCards).toEqual(["d1-0"]);
+    expect(stored.session?.known).toBe(0);
+    expect(stored.session?.unknown).toBe(0);
+    expect(clock.hasPending()).toBe(false);
+  });
+
+  it("persists the full review tally and schedule", () => {
     const { actor, clock, storage, deck } = boot(3);
     actor.send(openDeck.create({ deckId: "d1" }));
     for (const [i] of deck.cards.entries()) {
@@ -157,9 +246,12 @@ describe("persistence", () => {
       actor.send(grade.create({ known: i % 2 === 0 }));
       clock.advance(GRADE_FLYOUT_MS);
     }
-    const stored = storedStats(storage);
+    const stored = storedData(storage);
     expect(stored.stats.reviews).toBe(deck.cards.length);
-    expect(stored.cards["d1-0"]?.seen).toBe(1);
+    expect(stored.cards["d1-0"]?.state).toBe("review");
+    // the first card is graded at t=0, so it comes due exactly one day later
+    expect(stored.cards["d1-0"]?.due).toBe(DAY_MS);
+    expect(stored.history[0]?.reviews).toBe(deck.cards.length);
     expect(Object.keys(stored.cards)).toHaveLength(deck.cards.length);
   });
 
@@ -167,10 +259,34 @@ describe("persistence", () => {
     const storage = memoryStorage();
     persistData(
       {
-        version: 1,
-        cards: { c1: { seen: 1, known: 1, unknown: 0, last: 9 } },
+        version: 2,
+        cards: {
+          c1: {
+            seen: 1,
+            known: 1,
+            unknown: 0,
+            last: 9,
+            state: "review",
+            due: 9 + DAY_MS,
+            interval: 1,
+            ease: 2.6,
+            reps: 1,
+            lapses: 0,
+          },
+        },
         stats: { sessions: 0, reviews: 1, known: 1, unknown: 0 },
-        settings: { codeSize: 17, printWidth: 55 },
+        history: [{ day: "2026-08-01", reviews: 1, known: 1, unknown: 0 }],
+        settings: { codeSize: 17, printWidth: 55, shuffle: true },
+        session: {
+          deckId: "d1",
+          order: [0, 2, 1],
+          idx: 1,
+          known: 1,
+          unknown: 0,
+          skipped: 0,
+          skippedCards: [],
+          missed: [],
+        },
       },
       storage,
     );
@@ -181,12 +297,14 @@ describe("persistence", () => {
       clock,
       context: persisted
         ? {
-            session: null,
+            session: persisted.session,
             lastGrade: null,
             progress: persisted.cards,
             stats: persisted.stats,
+            history: persisted.history,
             settings: persisted.settings,
             settingsFrom: null,
+            detailDeckId: null,
           }
         : undefined,
     });
@@ -195,23 +313,36 @@ describe("persistence", () => {
       known: 1,
       unknown: 0,
       last: 9,
+      state: "review",
+      due: 9 + DAY_MS,
+      interval: 1,
+      ease: 2.6,
+      reps: 1,
+      lapses: 0,
     });
-    expect(actor.snapshot().context.settings).toEqual({ codeSize: 17, printWidth: 55 });
+    expect(actor.snapshot().context.history).toEqual([
+      { day: "2026-08-01", reviews: 1, known: 1, unknown: 0 },
+    ]);
+    expect(actor.snapshot().context.session?.idx).toBe(1);
+    expect(actor.snapshot().context.settings).toEqual({
+      codeSize: 17,
+      printWidth: 55,
+      shuffle: true,
+    });
   });
 
-  it("RESET_PROGRESS persists the cleared data", () => {
+  it("RESET_PROGRESS persists cleared progress but keeps the paused session", () => {
     const { actor, storage } = boot(1);
     actor.send(openDeck.create({ deckId: "d1" }));
     actor.send(flip.create());
     actor.send(grade.create({ known: true }));
     actor.send(backToHome.create());
     actor.send(resetProgress.create());
-    expect(storedStats(storage)).toEqual({
-      version: 1,
-      cards: {},
-      stats: { sessions: 0, reviews: 0, known: 0, unknown: 0 },
-      settings: { codeSize: null, printWidth: null },
-    });
+    const stored = storedData(storage);
+    expect(stored.cards).toEqual({});
+    expect(stored.history).toEqual([]);
+    expect(stored.stats).toEqual({ sessions: 0, reviews: 0, known: 0, unknown: 0 });
+    expect(stored.session?.deckId).toBe("d1");
   });
 
   it("RESET wipes and persists the cleared state", () => {
@@ -220,11 +351,6 @@ describe("persistence", () => {
     actor.send(flip.create());
     actor.send(grade.create({ known: true }));
     actor.send(reset.create());
-    expect(storedStats(storage)).toEqual({
-      version: 1,
-      cards: {},
-      stats: { sessions: 0, reviews: 0, known: 0, unknown: 0 },
-      settings: { codeSize: null, printWidth: null },
-    });
+    expect(storedData(storage)).toEqual(v2Empty());
   });
 });

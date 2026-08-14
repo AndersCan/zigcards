@@ -3,21 +3,25 @@ import { withTimeout } from "@mantaq/sugar";
 import type { Deck } from "../types.ts";
 import {
   advanceSession,
+  beginSession,
+  buildQueue,
   clearSession,
   emptyStats,
   gradeCard,
   initialContext,
+  pauseSession,
   recordReview,
   resetProgress as clearProgress,
-  restartSession,
-  startSession,
+  skipCard,
   updateCodeSettings,
 } from "./context.ts";
 import {
   backToHome,
   closeSettings,
   credits,
+  deckDetail,
   done,
+  drillMissed,
   flip,
   grade,
   gradeDone,
@@ -26,7 +30,9 @@ import {
   internal,
   openCredits,
   openDeck,
+  openDeckDetail,
   openSettings,
+  openStats,
   reset,
   resetProgress,
   restartDeck,
@@ -34,7 +40,9 @@ import {
   reviewFront,
   reviewGrading,
   settings,
+  skip,
   states,
+  stats,
   updateSettings,
 } from "./refs.ts";
 import type { AppContext, CodeSettings, DeckIndex, SettingsSource } from "./types.ts";
@@ -48,10 +56,12 @@ export interface AppMachineOptions {
   decks: DeckIndex;
   clock?: Clock;
   context?: AppContext;
+  random?: () => number;
 }
 
 export function createAppActor(options: AppMachineOptions) {
   const { decks } = options;
+  const random = options.random ?? Math.random;
 
   const actor = new Actor({
     inputs,
@@ -67,27 +77,73 @@ export function createAppActor(options: AppMachineOptions) {
       const currentCard = (ctx: AppContext): Deck["cards"][number] | null => {
         const deck = currentDeck(ctx);
         if (!deck || !ctx.session) return null;
-        return deck.cards[ctx.session.idx] ?? null;
+        return deck.cards[ctx.session.order[ctx.session.idx]] ?? null;
       };
 
       const gradeKnown = (context: Context<AppContext>, known: boolean, now: number): boolean => {
         const ctx = context.get();
         const card = currentCard(ctx);
         if (!ctx.session || !card) return false;
-        context.set(recordReview(gradeCard(ctx, known), card.id, known, now));
+        context.set(recordReview(gradeCard(ctx, card.id, known), card.id, known, now));
         return true;
       };
 
-      const leaveToHome = (context: Context<AppContext>) => {
+      /** Resume a paused session for the deck, or start a fresh due+new pass. */
+      const startOrResumeDeck = (deckId: string, context: Context<AppContext>, clock: Clock) => {
+        if (!decks[deckId]) return { ok: false } as const;
+        const ctx = context.get();
+        if (ctx.session?.deckId === deckId) {
+          context.set(pauseSession(ctx));
+          return {
+            ok: true,
+            state: ctx.session.idx >= ctx.session.order.length ? done : reviewFront,
+          } as const;
+        }
+        const order = buildQueue(decks[deckId], ctx.progress, {
+          now: clock.now(),
+          shuffle: ctx.settings.shuffle,
+          random,
+        });
+        context.set(beginSession(ctx, deckId, order));
+        return { ok: true, state: order.length ? reviewFront : done } as const;
+      };
+
+      const skipStep = (_: unknown, { context }: { context: Context<AppContext> }) => {
+        const ctx = context.get();
+        const card = currentCard(ctx);
+        if (!ctx.session || !card) return {};
+        context.set(skipCard(ctx, card.id));
+        const s = context.get().session;
+        return s && s.idx >= s.order.length ? { state: done } : { state: reviewFront };
+      };
+
+      const pauseToHome = (context: Context<AppContext>) => {
+        context.set({ ...pauseSession(context.get()), settingsFrom: null, detailDeckId: null });
+        return { state: home };
+      };
+
+      const finishToHome = (context: Context<AppContext>) => {
         context.set({ ...clearSession(context.get()), settingsFrom: null });
         return { state: home };
       };
 
-      m.on(home, openDeck, (e, { context }) => {
-        if (!decks[e.payload.deckId]) return {};
-        context.set(startSession(context.get(), e.payload.deckId));
-        return { state: reviewFront };
+      m.on(home, openDeck, (e, { context, actor }) => {
+        const r = startOrResumeDeck(e.payload.deckId, context, actor.clock);
+        return r.ok ? { state: r.state } : {};
       });
+
+      m.on(deckDetail, openDeck, (e, { context, actor }) => {
+        const r = startOrResumeDeck(e.payload.deckId, context, actor.clock);
+        return r.ok ? { state: r.state } : {};
+      });
+
+      m.on(home, openDeckDetail, (e, { context }) => {
+        if (!decks[e.payload.deckId]) return {};
+        context.set({ ...context.get(), detailDeckId: e.payload.deckId });
+        return { state: deckDetail };
+      });
+
+      m.on(home, openStats, () => ({ state: stats }));
 
       m.on(reviewFront, flip, () => ({ state: reviewBack }));
 
@@ -97,12 +153,15 @@ export function createAppActor(options: AppMachineOptions) {
 
       m.on(reviewGrading, gradeDone, (_, { context }) => {
         const ctx = context.get();
-        const deck = currentDeck(ctx);
-        if (!ctx.session || !deck) return { state: done };
-        const nextIdx = ctx.session.idx + 1;
+        const session = ctx.session;
+        if (!session) return { state: done };
+        const nextIdx = session.idx + 1;
         context.set({ ...advanceSession(ctx), lastGrade: null });
-        return { state: nextIdx < deck.cards.length ? reviewFront : done };
+        return { state: nextIdx < session.order.length ? reviewFront : done };
       });
+
+      m.on(reviewFront, skip, skipStep);
+      m.on(reviewBack, skip, skipStep);
 
       // Deliberate drops: registered as no-ops so they don't spam the
       // "[Actor] no transition" warning (the warning = wiring bug rule).
@@ -111,14 +170,39 @@ export function createAppActor(options: AppMachineOptions) {
       m.on(reviewGrading, grade, () => ({}));
       m.on(reviewGrading, openSettings, () => ({}));
 
-      m.on(reviewFront, backToHome, (_, { context }) => leaveToHome(context));
-      m.on(reviewBack, backToHome, (_, { context }) => leaveToHome(context));
-      m.on(reviewGrading, backToHome, (_, { context }) => leaveToHome(context));
-      m.on(done, backToHome, (_, { context }) => leaveToHome(context));
+      m.on(reviewFront, backToHome, (_, { context }) => pauseToHome(context));
+      m.on(reviewBack, backToHome, (_, { context }) => pauseToHome(context));
+      m.on(reviewGrading, backToHome, (_, { context }) => pauseToHome(context));
+      m.on(done, backToHome, (_, { context }) => finishToHome(context));
+      m.on(deckDetail, backToHome, (_, { context }) => pauseToHome(context));
+      m.on(stats, backToHome, (_, { context }) => pauseToHome(context));
 
-      m.on(done, restartDeck, (_, { context }) => {
-        context.set(restartSession(context.get()));
-        return { state: reviewFront };
+      m.on(done, restartDeck, (_, { context, actor }) => {
+        const ctx = context.get();
+        const session = ctx.session;
+        if (!session || !decks[session.deckId]) return {};
+        const order = buildQueue(decks[session.deckId], ctx.progress, {
+          now: actor.clock.now(),
+          shuffle: ctx.settings.shuffle,
+          random,
+          force: true,
+        });
+        context.set(beginSession(ctx, session.deckId, order));
+        return { state: order.length ? reviewFront : done };
+      });
+
+      m.on(done, drillMissed, (_, { context, actor }) => {
+        const ctx = context.get();
+        const session = ctx.session;
+        if (!session || !decks[session.deckId] || session.missed.length === 0) return {};
+        const order = buildQueue(decks[session.deckId], ctx.progress, {
+          now: actor.clock.now(),
+          shuffle: ctx.settings.shuffle,
+          random,
+          only: session.missed,
+        });
+        context.set(beginSession(ctx, session.deckId, order));
+        return { state: order.length ? reviewFront : done };
       });
 
       m.on(home, resetProgress, (_, { context }) => {
@@ -136,28 +220,38 @@ export function createAppActor(options: AppMachineOptions) {
       m.on(home, openSettings, openSettingsStep(home));
       m.on(reviewFront, openSettings, openSettingsStep(reviewFront));
       m.on(reviewBack, openSettings, openSettingsStep(reviewBack));
+      m.on(deckDetail, openSettings, openSettingsStep(deckDetail));
+      m.on(stats, openSettings, openSettingsStep(stats));
 
       m.on(settings, closeSettings, (_, { context }) => {
         const ctx = context.get();
         context.set({ ...ctx, settingsFrom: null });
         return { state: ctx.settingsFrom ?? home };
       });
-      m.on(settings, backToHome, (_, { context }) => leaveToHome(context));
+      m.on(settings, backToHome, (_, { context }) => pauseToHome(context));
 
       m.on(home, openCredits, () => ({ state: credits }));
-      m.on(credits, backToHome, (_, { context }) => leaveToHome(context));
+      m.on(credits, backToHome, (_, { context }) => pauseToHome(context));
 
       m.onAny(updateSettings, (e, { context }) => {
         const patch: Partial<CodeSettings> = {};
         if (e.payload.codeSize !== undefined) patch.codeSize = e.payload.codeSize;
         if (e.payload.printWidth !== undefined) patch.printWidth = e.payload.printWidth;
+        if (e.payload.shuffle !== undefined) patch.shuffle = e.payload.shuffle;
         context.set(updateCodeSettings(context.get(), patch));
         return {};
       });
 
       m.onAny(reset, (_, { context }) => {
         const ctx = context.get();
-        context.set({ ...clearSession(ctx), progress: {}, stats: emptyStats() });
+        context.set({
+          ...clearSession(ctx),
+          progress: {},
+          stats: emptyStats(),
+          history: [],
+          settingsFrom: null,
+          detailDeckId: null,
+        });
         return { state: home };
       });
 

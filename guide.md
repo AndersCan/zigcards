@@ -48,7 +48,8 @@ The canonical source is the **mojo-quest** exercise repository:
   (MQ-1xx basics/functions, 2xx variables/types/collections, 3xx operators &
   control flow, 4xx errors & context managers, 5xx structs & modules, 6xx value
   ownership, 7xx value lifecycle, 8xx metaprogramming, 9xx pointers/testing).
-  That order **is** our curriculum. Our deck maps to that sequence.
+  That order **is** our curriculum. Our decks map to that sequence, split into
+  one deck per MQ band (MQ-1xx → MQ-9xx).
 
 Two artifacts are authoritative and must be used as-is:
 
@@ -113,6 +114,33 @@ address is, stack vs heap, values vs references, what a GC does. Rules:
    explicit memory model Zig exposes (addresses, `&`, `.*`).
 5. **Flashcard-sized** like all cards: front ≤ ~20 words, back ≤ ~40 words,
    `explanation` ≤ ~3 sentences.
+
+## 2c. How the review engine treats your cards
+
+Reviews run on spaced repetition (SM-2 flavored). Every grade is a review
+event that moves the card through its schedule:
+
+- **New cards** enter the session queue once due (see below).
+- A **known** grade schedules the next review: 1 day, then 3 days, then
+  ~`interval × ease` (ease starts at 2.5, moves ±0.1 per grade, floor 1.3),
+  capped at 365 days.
+- An **unknown** grade schedules a 1-day relearning pass, increments the
+  card's `lapses`, and adds the card to the session's "missed" list so the
+  done screen can offer a "Review missed" drill-down.
+
+A session queue is built at **open time** from new + due cards — never the
+whole deck — in deck order unless the user enables shuffle in settings.
+Cards whose next review isn't due yet are skipped until their due date.
+
+- Skipping a card re-queues it to the end of the session; no review is
+  recorded for it. A card skipped twice is passed instead, so a session where
+  every card is skipped still ends cleanly.
+- Backing out mid-session pauses it; reopening the deck resumes where you
+  left off.
+- Per-card progress (seen/known/unknown, last review, due date, state)
+  drives the deck-detail view and the home-screen badges.
+
+This only changes _when_ a card is shown, not its content or deck order.
 
 ## 3. Card schema
 

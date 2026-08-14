@@ -145,3 +145,215 @@ test("settings screen adjusts code size, applies it, and persists", async () => 
   await userEvent.click(el("#btn-back"));
   expect(hidden("#screen-home")).toBe(false);
 });
+
+function persisted(): Record<string, unknown> {
+  return JSON.parse(localStorage.getItem("zigcards.v1") ?? "{}") as Record<string, unknown>;
+}
+
+test("skip advances without recording a review and re-queues the card", async () => {
+  await openDeckNamed("Hello, Zig");
+  const firstFront = el(".card-front").textContent;
+  await userEvent.click(el("#btn-skip"));
+  // the queue re-orders (current card moves to the end) but the index stays put
+  await waitFor(() => el(".card-front").textContent !== firstFront);
+  expect(el("#tb-count").textContent).toBe("1/4");
+  const afterSkip = persisted() as { stats: { reviews: number } };
+  expect(afterSkip.stats?.reviews).toBe(0);
+
+  // grade everything else; the skipped card comes back last
+  for (let i = 1; i <= 4; i++) {
+    if (i === 4) {
+      expect(el(".card-front").textContent).toBe(firstFront);
+    }
+    if (hidden("#card-back")) {
+      await userEvent.click(el("#card"));
+    }
+    await userEvent.click(el("#btn-known"));
+    await waitFor(() => count("#btn-show") > 0 || !hidden("#screen-done"));
+  }
+  expect(hidden("#screen-done")).toBe(false);
+  const done = persisted() as { stats: { reviews: number }; session: { skipped: number } };
+  expect(done.stats?.reviews).toBe(4);
+  expect(done.session?.skipped).toBe(1);
+});
+
+test("Review missed drills only the missed card", async () => {
+  await openDeckNamed("Hello, Zig");
+  for (let i = 0; i < 4; i++) {
+    if (hidden("#card-back")) {
+      await userEvent.click(el("#card"));
+    }
+    const btn = i === 1 ? "#btn-unknown" : "#btn-known";
+    await userEvent.click(el(btn));
+    await waitFor(() => count("#btn-show") > 0 || !hidden("#screen-done"));
+  }
+  expect(hidden("#screen-done")).toBe(false);
+  expect(el("#screen-done h2").textContent).toBe("Session complete");
+  expect(el("#screen-done").textContent).toContain("Review missed (1)");
+
+  await userEvent.click(el("#screen-done .primary-btn"));
+  await waitFor(() => !hidden("#screen-review"));
+  expect(el("#tb-count").textContent).toBe("1/1");
+  if (hidden("#card-back")) {
+    await userEvent.click(el("#card"));
+  }
+  await userEvent.click(el("#btn-known"));
+  await waitFor(() => !hidden("#screen-done"));
+});
+
+test("empty queue reaches the all-caught-up done state", async () => {
+  await openDeckNamed("Hello, Zig");
+  for (let i = 0; i < 4; i++) {
+    if (hidden("#card-back")) {
+      await userEvent.click(el("#card"));
+    }
+    await userEvent.click(el("#btn-known"));
+    await waitFor(() => count("#btn-show") > 0 || !hidden("#screen-done"));
+  }
+  expect(hidden("#screen-done")).toBe(false);
+  await userEvent.click(el(".ghost-btn"));
+  await waitFor(() => !hidden("#screen-home"));
+
+  // every card is now scheduled for tomorrow, so reopening reaches done
+  // immediately with the "all caught up" empty state
+  await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-done"));
+  expect(el("#screen-done h2").textContent).toBe("All caught up!");
+  expect(el("#screen-done").textContent).toContain("No cards are due right now");
+
+  // Practice all cards force-starts the whole deck again
+  await userEvent.click(el("#screen-done .primary-btn"));
+  await waitFor(() => !hidden("#screen-review"));
+  expect(el("#tb-count").textContent).toBe("1/4");
+});
+
+test("mid-session exit shows a resume badge and reopening resumes", async () => {
+  await openDeckNamed("Hello, Zig");
+  await userEvent.click(el("#card"));
+  await userEvent.click(el("#btn-known"));
+  await waitFor(() => el("#tb-count").textContent === "2/4");
+  await userEvent.click(el("#btn-back"));
+  await waitFor(() => !hidden("#screen-home"));
+
+  const row = [...document.querySelectorAll<HTMLElement>(".deck-row")].find(
+    (r) => r.querySelector(".name")?.textContent === "Hello, Zig",
+  );
+  expect(row?.querySelector(".badge.resume")?.textContent).toBe("resume");
+  if (!row) throw new Error("Hello, Zig row not found");
+
+  await userEvent.click(row);
+  await waitFor(() => !hidden("#screen-review"));
+  expect(el("#tb-count").textContent).toBe("2/4");
+});
+
+test("deck detail lists per-card progress after grading", async () => {
+  await openDeckNamed("Hello, Zig");
+  await userEvent.click(el("#card"));
+  await userEvent.click(el("#btn-unknown"));
+  await waitFor(() => el("#tb-count").textContent === "2/4");
+  await userEvent.click(el("#btn-back"));
+  await waitFor(() => !hidden("#screen-home"));
+
+  const row = [...document.querySelectorAll<HTMLElement>(".deck-row")].find(
+    (r) => r.querySelector(".name")?.textContent === "Hello, Zig",
+  );
+  const info = row?.querySelector(".row-info");
+  if (!info) throw new Error("row info button not found");
+  await userEvent.click(info);
+  await waitFor(() => !hidden("#screen-deck-detail"));
+  expect(hidden("#screen-home")).toBe(true);
+  expect(el("#tb-title").textContent).toBe("Hello, Zig");
+  expect(hidden("#tb-count")).toBe(true);
+
+  const cards = [...document.querySelectorAll<HTMLElement>("#screen-deck-detail .detail-card")];
+  expect(cards.length).toBe(4);
+  const first = cards[0];
+  expect(first.querySelector(".chip")?.textContent).toContain("seen 1");
+  expect(first.textContent).toContain("relearning");
+  expect(first.classList.contains("weak")).toBe(true);
+
+  // Start review resumes the paused session rather than restarting
+  await userEvent.click(el("#screen-deck-detail .primary-btn"));
+  await waitFor(() => !hidden("#screen-review"));
+  expect(el("#tb-count").textContent).toBe("2/4");
+});
+
+test("stats screen shows a per-day entry and a streak after grading", async () => {
+  await openDeckNamed("Hello, Zig");
+  await userEvent.click(el("#card"));
+  await userEvent.click(el("#btn-known"));
+  await waitFor(() => el("#tb-count").textContent === "2/4");
+  await userEvent.click(el("#btn-back"));
+  await waitFor(() => !hidden("#screen-home"));
+
+  await userEvent.click(el(".footer-note [aria-label='Stats']"));
+  await waitFor(() => !hidden("#screen-stats"));
+  expect(hidden("#screen-home")).toBe(true);
+  const text = el("#screen-stats").textContent ?? "";
+  expect(text).toContain("current streak");
+  expect(text).toContain("longest streak");
+  expect(text).toContain("1 reviews");
+  expect(count("#screen-stats .day-row")).toBe(1);
+  const streakCell = document.querySelector("#screen-stats .done-stat .v");
+  expect(streakCell?.textContent).toBe("1");
+
+  await userEvent.click(el("#btn-back"));
+  await waitFor(() => !hidden("#screen-home"));
+});
+
+test("stats screen shows an empty state before any reviews", async () => {
+  await userEvent.click(el(".footer-note [aria-label='Stats']"));
+  await waitFor(() => !hidden("#screen-stats"));
+  expect(el("#screen-stats").textContent).toContain("No reviews yet");
+  await userEvent.click(el("#btn-back"));
+  await waitFor(() => !hidden("#screen-home"));
+});
+
+test("shuffle toggle persists and changes session ordering", async () => {
+  await userEvent.click(el("#btn-settings"));
+  await waitFor(() => !hidden("#screen-settings"));
+  const input = el("#screen-settings input[aria-label='Shuffle cards']") as HTMLInputElement;
+  expect(input.checked).toBe(false);
+
+  // click the visible switch (the native checkbox itself is hidden)
+  await userEvent.click(el("#screen-settings .switch"));
+  await waitFor(() => input.checked === true);
+  let stored = persisted() as { settings?: { shuffle?: boolean } };
+  expect(stored.settings?.shuffle).toBe(true);
+
+  // the setting survives a settings round-trip
+  await userEvent.click(el("#btn-back"));
+  await waitFor(() => !hidden("#screen-home"));
+  await userEvent.click(el("#btn-settings"));
+  await waitFor(() => !hidden("#screen-settings"));
+  expect(
+    (el("#screen-settings input[aria-label='Shuffle cards']") as HTMLInputElement).checked,
+  ).toBe(true);
+  await userEvent.click(el("#btn-back"));
+  await waitFor(() => !hidden("#screen-home"));
+
+  // shuffled sessions are still a permutation of the deck; retry until one run
+  // differs from the natural order so the assertion never flakes on randomness.
+  let sawShuffle = false;
+  for (let attempt = 0; attempt < 8 && !sawShuffle; attempt++) {
+    await openDeckNamed("Hello, Zig");
+    const order = (persisted() as { session?: { order: number[] } }).session?.order ?? [];
+    expect(order.length).toBe(4);
+    expect([...order].sort((a, b) => a - b)).toEqual([0, 1, 2, 3]);
+    if (!order.every((v, i) => v === i)) sawShuffle = true;
+    await resetUi();
+  }
+  expect(sawShuffle).toBe(true);
+
+  // restore the default so later tests are unaffected
+  await userEvent.click(el("#btn-settings"));
+  await waitFor(() => !hidden("#screen-settings"));
+  const off = el("#screen-settings .switch");
+  const offInput = el("#screen-settings input[aria-label='Shuffle cards']") as HTMLInputElement;
+  await userEvent.click(off);
+  await waitFor(() => offInput.checked === false);
+  stored = persisted() as { settings?: { shuffle?: boolean } };
+  expect(stored.settings?.shuffle).toBe(false);
+  await userEvent.click(el("#btn-back"));
+  await waitFor(() => !hidden("#screen-home"));
+});

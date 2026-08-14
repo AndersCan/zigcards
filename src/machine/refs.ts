@@ -8,6 +8,8 @@ export const reviewGrading = state("review.grading")();
 export const done = state("done")();
 export const settings = state("settings")();
 export const credits = state("credits")();
+export const deckDetail = state("deck.detail")();
+export const stats = state("stats")();
 
 export const states = [
   home,
@@ -17,14 +19,20 @@ export const states = [
   done,
   settings,
   credits,
+  deckDetail,
+  stats,
 ] as const;
 
 export const openDeck = event("OPEN_DECK")<{ deckId: string }>();
+export const openDeckDetail = event("OPEN_DECK_DETAIL")<{ deckId: string }>();
+export const openStats = event("OPEN_STATS")();
 export const flip = event("FLIP")();
 export const grade = event("GRADE")<{ known: boolean }>();
+export const skip = event("SKIP")();
 export const gradeDone = event("GRADE_DONE")();
 export const backToHome = event("BACK_TO_HOME")();
 export const restartDeck = event("RESTART_DECK")();
+export const drillMissed = event("DRILL_MISSED")();
 export const resetProgress = event("RESET_PROGRESS")();
 export const reset = event("RESET")();
 export const openSettings = event("OPEN_SETTINGS")();
@@ -34,10 +42,14 @@ export const updateSettings = event("UPDATE_SETTINGS")<Partial<CodeSettings>>();
 
 export const inputs = [
   openDeck,
+  openDeckDetail,
+  openStats,
   flip,
   grade,
+  skip,
   backToHome,
   restartDeck,
+  drillMissed,
   resetProgress,
   reset,
   openSettings,
