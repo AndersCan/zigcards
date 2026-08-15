@@ -156,7 +156,7 @@ function onMachineChange(snap: Snapshot<AppContext>, prev: Snapshot<AppContext>)
 }
 
 function setTopbar(title: string | null, sub: string | null, idx: number, len: number): void {
-  $("tb-title").textContent = title || "ZigCards";
+  $("tb-title").textContent = title || "Flash Cards";
   $("tb-sub").textContent = sub || "";
   if (actor?.snapshot().context.session != null) {
     $("tb-count").hidden = false;
@@ -215,7 +215,7 @@ function homeTemplate(ctx: AppContext): TemplateResult {
   const bySection = groupDecksBySection();
   return html`
     <div class="hero">
-      <h1>ZigCards</h1>
+      <h1>Flash Cards</h1>
       <p>
         Flashcards for learning Zig, Mojo, and Urdu &mdash; with the memory basics JavaScript never
         made you learn. Pick a topic to see its decks.
@@ -254,7 +254,7 @@ function homeTemplate(ctx: AppContext): TemplateResult {
       >
         reset progress
       </button>
-      <br />ZigCards v${APP_VERSION}
+      <br />Flash Cards v${APP_VERSION}
     </div>
   `;
 }
@@ -327,7 +327,7 @@ function sectionTemplate(ctx: AppContext): TemplateResult {
 }
 
 function renderHome(ctx: AppContext): void {
-  setTopbar("ZigCards", "choose a topic", 0, 0);
+  setTopbar("Flash Cards", "choose a topic", 0, 0);
   $("tb-count").hidden = true;
   $("tb-progress-wrap").hidden = true;
   show("home");
@@ -439,7 +439,7 @@ function creditsTemplate(): TemplateResult {
 }
 
 function renderCredits(): void {
-  setTopbar("ZigCards", "thanks & acknowledgements", 0, 0);
+  setTopbar("Flash Cards", "thanks & acknowledgements", 0, 0);
   $("tb-count").hidden = true;
   $("tb-progress-wrap").hidden = true;
   show("credits");
@@ -579,7 +579,7 @@ function activateOnKey(action: () => void): (e: KeyboardEvent) => void {
 function renderDone(snap: Snapshot<AppContext>): void {
   const session = snap.context.session;
   const deck = session ? deckIndex[session.deckId] : null;
-  const title = deck?.title ?? "ZigCards";
+  const title = deck?.title ?? "Flash Cards";
   setTopbar(null, title, 0, 0);
   $("tb-count").hidden = true;
   $("tb-progress-wrap").hidden = true;
