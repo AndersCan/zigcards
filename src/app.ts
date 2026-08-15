@@ -161,7 +161,9 @@ function setTopbar(title: string | null, sub: string | null, idx: number, len: n
   if (actor?.snapshot().context.session != null) {
     $("tb-count").hidden = false;
     $("tb-count").textContent = `${idx + 1}/${len}`;
+    $("tb-count").setAttribute("aria-label", `card ${idx + 1} of ${len}`);
     $("tb-progress-wrap").hidden = false;
+    $("tb-progress").setAttribute("aria-valuenow", `${Math.round((idx / len) * 100)}`);
     $("tb-progress").style.width = `${(idx / len) * 100}%`;
   } else {
     $("tb-count").hidden = true;
@@ -221,13 +223,20 @@ function homeTemplate(ctx: AppContext): TemplateResult {
     </div>
     ${orderedSections().map(
       (sec): unknown => html`
-        <div class="section-card" @click=${() => send(openSection.create({ sectionId: sec.id }))}>
+        <div
+          class="section-card"
+          role="button"
+          tabindex="0"
+          @click=${() => send(openSection.create({ sectionId: sec.id }))}
+          @keydown=${activateOnKey(() => send(openSection.create({ sectionId: sec.id })))}
+        >
           <span class="section-num">${String(sec.order)}</span>
           <span class="section-meta">
             <span class="section-title">${sec.title}</span>
-            <br /><span class="section-blurb">${sec.blurb}</span>
+            <span class="section-blurb">${sec.blurb}</span>
           </span>
           ${sectionMeta(bySection.get(sec.id)!, ctx)}
+          <span class="chevron" aria-hidden="true">&#8250;</span>
         </div>
       `,
     )}
@@ -263,24 +272,32 @@ function deckProgressBadge(
 
 function deckRow(deck: Deck, ctx: AppContext): TemplateResult {
   return html`
-    <div class="deck-row" @click=${() => send(openDeck.create({ deckId: deck.id }))}>
+    <div
+      class="deck-row"
+      role="button"
+      tabindex="0"
+      @click=${() => send(openDeck.create({ deckId: deck.id }))}
+      @keydown=${activateOnKey(() => send(openDeck.create({ deckId: deck.id })))}
+    >
       <span class="num">${String(deck.order).padStart(2, "0")}</span>
       <span class="meta">
         <span class="name">${deck.title}</span>
-        <br /><span class="sub">${deck.blurb}</span>
+        <span class="sub">${deck.blurb}</span>
       </span>
-      ${ctx.session?.deckId === deck.id ? html`<span class="badge resume">resume</span>` : ""}
-      ${deckProgressBadge(deck, ctx.progress, Date.now())}
-      <button
-        class="row-info"
-        aria-label="Deck details"
-        @click=${(e: Event): void => {
-          e.stopPropagation();
-          send(openDeckDetail.create({ deckId: deck.id }));
-        }}
-      >
-        &#8505;
-      </button>
+      <span class="row-end">
+        ${ctx.session?.deckId === deck.id ? html`<span class="badge resume">resume</span>` : ""}
+        ${deckProgressBadge(deck, ctx.progress, Date.now())}
+        <button
+          class="row-info"
+          aria-label="Deck details"
+          @click=${(e: Event): void => {
+            e.stopPropagation();
+            send(openDeckDetail.create({ deckId: deck.id }));
+          }}
+        >
+          &#8505;
+        </button>
+      </span>
     </div>
   `;
 }
@@ -298,10 +315,14 @@ function sectionTemplate(ctx: AppContext): TemplateResult {
       <span class="section-num">${String(sec.order)}</span>
       <span class="section-meta">
         <span class="section-title">${sec.title}</span>
-        <br /><span class="section-blurb">${sec.blurb}</span>
+        <span class="section-blurb">${sec.blurb}</span>
       </span>
     </div>
-    ${decks.map((deck) => deckRow(deck, ctx))}
+    ${
+      decks.length === 0
+        ? html`<p class="list-empty">No decks in this section yet &mdash; check back soon.</p>`
+        : decks.map((deck) => deckRow(deck, ctx))
+    }
   `;
 }
 
@@ -449,7 +470,11 @@ function reviewTemplate(v: ReviewView): TemplateResult {
       class="card ${revealed ? "revealed" : ""}"
       tabindex="0"
       role="button"
-      aria-label="Flashcard. Tap to flip, then use the buttons to grade."
+      aria-label=${
+        revealed
+          ? "Flashcard showing the answer. Grade it with the buttons below."
+          : "Flashcard. Tap to flip."
+      }
       style="${flyOut}"
       @click=${onCardTap}
     >
@@ -458,7 +483,7 @@ function reviewTemplate(v: ReviewView): TemplateResult {
         <div class="card-front">${inlineText(card.front)}</div>
         ${card.code ? codeBlock(card.code, language) : ""}
         <div id="card-back" class="card-back" ?hidden=${!revealed}>
-          <div class="answer">${inlineText(card.back)}</div>
+          <div class="answer" dir="auto">${inlineText(card.back)}</div>
           ${card.backCode ? codeBlock(card.backCode, language) : ""}
           ${
             card.explanation ? html`<div class="explain">${inlineText(card.explanation)}</div>` : ""
@@ -466,7 +491,7 @@ function reviewTemplate(v: ReviewView): TemplateResult {
         </div>
       </div>
       <div id="card-tap" class="card-tap" ?hidden=${revealed}>tap the card to flip</div>
-      <div id="flash" class="${flashClass}">${flashText}</div>
+      <div id="flash" class="${flashClass}" aria-hidden="true">${flashText}</div>
     </div>
     <div class="actions">
       ${
@@ -534,6 +559,21 @@ function onCardTap(): void {
   send(flip.create());
 }
 
+/* Keyboard activation for tappable-but-not-native rows (Enter/Space). Ignore
+   keydowns from nested native controls (e.g. the ⓘ detail button) and from
+   rows on a screen that has already been left (still focused while hidden). */
+function activateOnKey(action: () => void): (e: KeyboardEvent) => void {
+  return (e: KeyboardEvent) => {
+    const t = e.target as HTMLElement;
+    if (t.closest("button, input, select, textarea, a")) return;
+    if ((e.currentTarget as HTMLElement | null)?.closest("[hidden]")) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      action();
+    }
+  };
+}
+
 /* ---------- done ---------- */
 
 function renderDone(snap: Snapshot<AppContext>): void {
@@ -541,6 +581,8 @@ function renderDone(snap: Snapshot<AppContext>): void {
   const deck = session ? deckIndex[session.deckId] : null;
   const title = deck?.title ?? "ZigCards";
   setTopbar(null, title, 0, 0);
+  $("tb-count").hidden = true;
+  $("tb-progress-wrap").hidden = true;
   show("done");
   const known = session?.known ?? 0;
   const unknown = session?.unknown ?? 0;
@@ -562,10 +604,6 @@ function renderDone(snap: Snapshot<AppContext>): void {
       <div class="done-stat">
         <div class="v">${acc}%</div>
         <div class="l">accuracy</div>
-      </div>
-      <div class="done-stat">
-        <div class="v bad">${missed}</div>
-        <div class="l">missed</div>
       </div>
       <div class="done-stat">
         <div class="v">${skipped}</div>
@@ -597,7 +635,7 @@ function renderDone(snap: Snapshot<AppContext>): void {
             send(restartDeck.create());
           }}
         >
-          Review again
+          Practice all cards
         </button>`;
   render(
     html`
@@ -659,6 +697,7 @@ function deckDetailTemplate(
   deck: Deck,
   progress: AppContext["progress"],
   now: number,
+  resume: boolean,
 ): TemplateResult {
   const agg = deckProgress(deck, progress, now);
   return html`
@@ -680,7 +719,7 @@ function deckDetailTemplate(
         </div>
       </div>
       <button class="primary-btn" @click=${() => send(openDeck.create({ deckId: deck.id }))}>
-        Start review
+        ${resume ? "Resume review" : "Start review"}
       </button>
     </div>
     <h3 class="detail-list-head">Cards (${deck.cards.length})</h3>
@@ -697,7 +736,8 @@ function renderDeckDetail(snap: Snapshot<AppContext>): void {
   $("tb-count").hidden = true;
   $("tb-progress-wrap").hidden = true;
   show("deck.detail");
-  render(deckDetailTemplate(deck, snap.context.progress, now), screens["deck.detail"]);
+  const resume = snap.context.session?.deckId === deck.id;
+  render(deckDetailTemplate(deck, snap.context.progress, now, resume), screens["deck.detail"]);
 }
 
 /* ---------- stats ---------- */
@@ -962,6 +1002,12 @@ document.addEventListener("keydown", (e: KeyboardEvent) => {
     return;
   }
   if (!state.startsWith("review.")) return;
+  // grading fly-out: the 240ms animation should finish untouched
+  if (state === "review.grading") return;
+  // let native controls (grade/skip buttons) handle Space/Enter themselves
+  // instead of the global handler swallowing their activation
+  const t = e.target as HTMLElement | null;
+  if (t && t.closest("button, input, select, textarea, a")) return;
   if (e.key === " " || e.key === "Enter") {
     e.preventDefault();
     send(flip.create());

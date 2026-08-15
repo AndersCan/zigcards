@@ -22,7 +22,15 @@
         <button id="btn-settings" class="tb-btn" aria-label="Settings" hidden>&#9881;</button>
         <div id="tb-count" class="tb-count" hidden></div>
         <div id="tb-progress-wrap" class="tb-progress-wrap" hidden>
-          <div id="tb-progress" class="tb-progress"></div>
+          <div
+            id="tb-progress"
+            class="tb-progress"
+            role="progressbar"
+            aria-label="Session progress"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          ></div>
         </div>
       </header>
 
