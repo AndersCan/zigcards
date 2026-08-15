@@ -83,13 +83,14 @@ function hasSource(file) {
 for (const deck of decks) {
   if (!deck.id || !/^[a-z0-9-]+$/.test(deck.id)) errors.push(`${deck.id}: bad deck id`);
   if (typeof deck.order !== "number") errors.push(`${deck.id}: missing numeric order`);
-  if (!["prerequisites", "zig", "mojo"].includes(deck.section))
+  if (!["prerequisites", "zig", "mojo", "urdu"].includes(deck.section))
     errors.push(`${deck.id}: missing or invalid section '${deck.section}'`);
   if (deck.language != null && !["zig", "mojo"].includes(deck.language))
     errors.push(`${deck.id}: invalid language '${deck.language}'`);
   if (!Array.isArray(deck.cards) || deck.cards.length === 0) errors.push(`${deck.id}: no cards`);
   const isPrereq = deck.section === "prerequisites";
   const isMojo = deck.section === "mojo";
+  const isUrdu = deck.section === "urdu";
   const idsSeen = new Set();
   for (const c of deck.cards) {
     cardCount++;
@@ -110,6 +111,15 @@ for (const deck of decks) {
         errors.push(`${deck.id}/${c.id}: prereq cards must be 'concept' (got '${c.type}')`);
       if (c.code || c.backCode)
         errors.push(`${deck.id}/${c.id}: prereq cards must not carry Zig code`);
+      continue;
+    }
+
+    if (isUrdu) {
+      if (!(c.source || "").startsWith("urdu "))
+        errors.push(`${deck.id}/${c.id}: urdu source must start with 'urdu '`);
+      if (c.type !== "concept")
+        errors.push(`${deck.id}/${c.id}: urdu cards must be 'concept' (got '${c.type}')`);
+      if (c.code || c.backCode) errors.push(`${deck.id}/${c.id}: urdu cards must not carry code`);
       continue;
     }
 

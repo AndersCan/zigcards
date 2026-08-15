@@ -115,6 +115,19 @@ address is, stack vs heap, values vs references, what a GC does. Rules:
 5. **Flashcard-sized** like all cards: front ≤ ~20 words, back ≤ ~40 words,
    `explanation` ≤ ~3 sentences.
 
+## 2b-urdu. Urdu decks (section `urdu`)
+
+These decks teach common Urdu phrases for learning the language. Rules:
+
+1. **Concept cards only.** `type: "concept"` — no `output`, no `fix`.
+2. **No code.** `code`/`backCode` must be absent.
+3. **Source convention.** `source` must start with `urdu ` and name the
+   category, e.g. `source: "urdu greetings"`. There is no external artifact to
+   byte-check against — correctness is the author's responsibility.
+4. **Content.** Common language-learning phrases in Urdu script, always with a
+   standard romanized transliteration on the same line (e.g.
+   `"شکریہ — shukriya"`). Flashcard-sized like all cards.
+
 ## 2c. How the review engine treats your cards
 
 Reviews run on spaced repetition (SM-2 flavored). Every grade is a review

@@ -19,6 +19,7 @@ import deckMojoOwnership from "../decks/15-mojo-ownership.ts";
 import deckMojoLifecycle from "../decks/16-mojo-lifecycle.ts";
 import deckMojoMetaprogramming from "../decks/17-mojo-metaprogramming.ts";
 import deckMojoPointersTesting from "../decks/18-mojo-pointers-testing.ts";
+import deckUrduPhrases from "../decks/00-urdu-phrases.ts";
 
 const decks: Deck[] = [
   deckMemoryBasics,
@@ -41,6 +42,7 @@ const decks: Deck[] = [
   deckMojoLifecycle,
   deckMojoMetaprogramming,
   deckMojoPointersTesting,
+  deckUrduPhrases,
 ];
 
 window.ZigCards = { decks };

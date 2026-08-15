@@ -19,4 +19,10 @@ export const SECTIONS: Section[] = [
     order: 2,
     blurb: "The Mojo curriculum, built from mojo-quest",
   },
+  {
+    id: "urdu",
+    title: "Urdu",
+    order: 3,
+    blurb: "Everyday Urdu for beginners — common phrases for learning the language",
+  },
 ];

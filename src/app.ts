@@ -215,8 +215,8 @@ function homeTemplate(ctx: AppContext): TemplateResult {
     <div class="hero">
       <h1>ZigCards</h1>
       <p>
-        Flashcards for learning Zig and Mojo &mdash; with the memory basics JavaScript never made
-        you learn. Pick a topic to see its decks.
+        Flashcards for learning Zig, Mojo, and Urdu &mdash; with the memory basics JavaScript never
+        made you learn. Pick a topic to see its decks.
       </p>
     </div>
     ${orderedSections().map(
