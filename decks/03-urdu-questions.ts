@@ -1,0 +1,93 @@
+import type { Deck } from "../src/types.ts";
+
+const deck: Deck = {
+  id: "urdu-questions",
+  title: "Urdu: basic questions",
+  order: 3,
+  blurb: "Asking what, where, when, why, and how",
+  section: "urdu",
+  cards: [
+    {
+      id: "ur-031",
+      source: "urdu questions",
+      type: "concept",
+      front: "How do you ask 'what is this?' in Urdu?",
+      back: "یہ کیا ہے؟ — yeh kya hai?",
+      explanation: "The single most useful phrase for pointing at things while learning.",
+    },
+    {
+      id: "ur-032",
+      source: "urdu questions",
+      type: "concept",
+      front: "How do you say 'why?' in Urdu?",
+      back: "کیوں؟ — kyun?",
+      explanation: "A one-word question, exactly like English.",
+    },
+    {
+      id: "ur-033",
+      source: "urdu questions",
+      type: "concept",
+      front: "How do you say 'when?' in Urdu?",
+      back: "کب؟ — kab?",
+      explanation: "One word; add a phrase after it for 'when does...'.",
+    },
+    {
+      id: "ur-034",
+      source: "urdu questions",
+      type: "concept",
+      front: "How do you say 'where?' in Urdu?",
+      back: "کہاں؟ — kahan?",
+      explanation: "Use it on its own, or in 'kahan hai?' for 'where is...'.",
+    },
+    {
+      id: "ur-035",
+      source: "urdu questions",
+      type: "concept",
+      front: "How do you say 'how?' in Urdu?",
+      back: "کیسے؟ — kaise?",
+      explanation: "Also the start of 'how much' questions when combined with other words.",
+    },
+    {
+      id: "ur-036",
+      source: "urdu questions",
+      type: "concept",
+      front: "How do you ask 'how much?' or 'how many?' in Urdu?",
+      back: "کتنا؟ — kitna?",
+      explanation: "For asking prices, quantities, or time: 'kitna baj raha hai?'.",
+    },
+    {
+      id: "ur-037",
+      source: "urdu questions",
+      type: "concept",
+      front: "How do you ask 'which one?' in Urdu?",
+      back: "کون سا؟ — kaun sa?",
+      explanation: "'Kaun' is who/which; 'sa' agrees with a masculine noun.",
+    },
+    {
+      id: "ur-038",
+      source: "urdu questions",
+      type: "concept",
+      front: "How do you say 'who?' in Urdu?",
+      back: "کون؟ — kaun?",
+      explanation: "One word. 'Kaun hai?' means 'who is it?'.",
+    },
+    {
+      id: "ur-039",
+      source: "urdu questions",
+      type: "concept",
+      front: "How do you ask 'do you understand?' in Urdu?",
+      back: "کیا آپ سمجھ گئے؟ — kya aap samajh gaye?",
+      explanation: "'Samajh gaye' is 'understood'; great for checking comprehension.",
+    },
+    {
+      id: "ur-040",
+      source: "urdu questions",
+      type: "concept",
+      front: "How do you ask 'can you help me?' in Urdu?",
+      back: "کیا آپ میری مدد کر سکتے ہیں؟ — kya aap meri madad kar sakte hain?",
+      explanation: "'Madad' is help. Drop the 'kya' for a more direct request.",
+    },
+  ],
+};
+
+export default deck;
