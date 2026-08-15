@@ -5,3 +5,5 @@ dist/
 .pnpm-store/
 .vitest-attachments/
 tests/machine/__screenshots__/
+
+tests/__screenshots__/
