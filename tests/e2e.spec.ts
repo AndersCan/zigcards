@@ -1,5 +1,6 @@
 import { beforeAll, beforeEach, expect, test } from "vite-plus/test";
 import { userEvent } from "vite-plus/test/browser";
+import { SECTIONS } from "../src/sections.ts";
 import { bootstrapApp, resetUi, waitFor } from "./helpers";
 
 beforeAll(bootstrapApp);
@@ -20,18 +21,49 @@ function hidden(selector: string): boolean {
   return node === null || (node as HTMLElement).hidden === true;
 }
 
+function sectionTitleForDeck(name: string): string {
+  const deck = window.ZigCards.decks.find((d) => d.title === name);
+  const sec = SECTIONS.find((s) => s.id === deck?.section);
+  if (!sec) throw new Error(`no section for deck "${name}"`);
+  return sec.title;
+}
+
+async function openSectionNamed(title: string): Promise<void> {
+  const cards = [...document.querySelectorAll<HTMLElement>(".section-card")];
+  const card = cards.find((c) => c.querySelector(".section-title")?.textContent === title);
+  if (!card) throw new Error(`section card "${title}" not found`);
+  await userEvent.click(card);
+  await waitFor(() => !hidden("#screen-section"));
+}
+
 async function openDeckNamed(name: string): Promise<void> {
+  if (hidden("#screen-section")) {
+    await openSectionNamed(sectionTitleForDeck(name));
+  }
   const rows = [...document.querySelectorAll<HTMLElement>(".deck-row")];
   const row = rows.find((r) => r.querySelector(".name")?.textContent === name);
   if (!row) throw new Error(`deck row "${name}" not found`);
   await userEvent.click(row);
 }
 
-test("home lists every deck, grouped into sections", async () => {
-  expect(count(".deck-row")).toBe(window.ZigCards.decks.length);
+test("home lists sections, not decks", async () => {
+  expect(count(".deck-row")).toBe(0);
+  expect(count(".section-card")).toBe(3);
   expect(el("#tb-title").textContent).toBe("ZigCards");
-  const heads = [...document.querySelectorAll(".section-title")].map((n) => n.textContent);
+  const heads = [...document.querySelectorAll(".section-card .section-title")].map(
+    (n) => n.textContent,
+  );
   expect(heads).toEqual(["Prerequisites", "Zig", "Mojo"]);
+});
+
+test("opening a section shows only that section's decks", async () => {
+  await openSectionNamed("Zig");
+  const names = [...document.querySelectorAll<HTMLElement>(".deck-row .name")].map(
+    (n) => n.textContent,
+  );
+  expect(names.length).toBeGreaterThan(0);
+  expect(names).toContain("Hello, Zig");
+  expect(names).not.toContain("Memory basics");
 });
 
 test("starting a deck shows the first card and progress", async () => {
@@ -45,6 +77,7 @@ test("starting a deck shows the first card and progress", async () => {
   expect(count("#btn-unknown")).toBe(0);
   // only the review screen is visible
   expect(hidden("#screen-home")).toBe(true);
+  expect(hidden("#screen-section")).toBe(true);
 });
 
 test("flip reveals the back, then grading advances", async () => {
@@ -91,19 +124,19 @@ test("completing a session shows results and persists progress", async () => {
   };
   expect(stored.stats.reviews).toBe(total);
 
-  // back to decks; the reviewed deck shows a progress badge
+  // back to the deck list; the reviewed deck shows a progress badge
   await userEvent.click(el(".ghost-btn"));
-  expect(hidden("#screen-home")).toBe(false);
+  expect(hidden("#screen-section")).toBe(false);
   const helloRows = [...document.querySelectorAll<HTMLElement>(".deck-row")].filter((r) =>
     r.querySelector(".name")?.textContent?.includes("Hello"),
   );
   expect(helloRows[0]?.querySelector(".badge")?.textContent).not.toBe("new");
 });
 
-test("back button returns home mid-session", async () => {
+test("back button returns to the section mid-session", async () => {
   await openDeckNamed("Hello, Zig");
   await userEvent.click(el("#btn-back"));
-  expect(hidden("#screen-home")).toBe(false);
+  expect(hidden("#screen-section")).toBe(false);
 });
 
 test("code blocks are highlighted by prism (token spans present)", async () => {
@@ -212,7 +245,7 @@ test("empty queue reaches the all-caught-up done state", async () => {
   }
   expect(hidden("#screen-done")).toBe(false);
   await userEvent.click(el(".ghost-btn"));
-  await waitFor(() => !hidden("#screen-home"));
+  await waitFor(() => !hidden("#screen-section"));
 
   // every card is now scheduled for tomorrow, so reopening reaches done
   // immediately with the "all caught up" empty state
@@ -233,7 +266,7 @@ test("mid-session exit shows a resume badge and reopening resumes", async () => 
   await userEvent.click(el("#btn-known"));
   await waitFor(() => el("#tb-count").textContent === "2/4");
   await userEvent.click(el("#btn-back"));
-  await waitFor(() => !hidden("#screen-home"));
+  await waitFor(() => !hidden("#screen-section"));
 
   const row = [...document.querySelectorAll<HTMLElement>(".deck-row")].find(
     (r) => r.querySelector(".name")?.textContent === "Hello, Zig",
@@ -252,7 +285,7 @@ test("deck detail lists per-card progress after grading", async () => {
   await userEvent.click(el("#btn-unknown"));
   await waitFor(() => el("#tb-count").textContent === "2/4");
   await userEvent.click(el("#btn-back"));
-  await waitFor(() => !hidden("#screen-home"));
+  await waitFor(() => !hidden("#screen-section"));
 
   const row = [...document.querySelectorAll<HTMLElement>(".deck-row")].find(
     (r) => r.querySelector(".name")?.textContent === "Hello, Zig",
@@ -283,6 +316,8 @@ test("stats screen shows a per-day entry and a streak after grading", async () =
   await userEvent.click(el("#card"));
   await userEvent.click(el("#btn-known"));
   await waitFor(() => el("#tb-count").textContent === "2/4");
+  await userEvent.click(el("#btn-back"));
+  await waitFor(() => !hidden("#screen-section"));
   await userEvent.click(el("#btn-back"));
   await waitFor(() => !hidden("#screen-home"));
 

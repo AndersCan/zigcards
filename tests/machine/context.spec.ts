@@ -49,6 +49,7 @@ describe("context helpers", () => {
       settings: { codeSize: null, printWidth: null, shuffle: false },
       settingsFrom: null,
       detailDeckId: null,
+      sectionId: null,
     });
   });
 

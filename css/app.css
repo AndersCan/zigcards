@@ -241,6 +241,48 @@ body {
   border-color: #3a4358;
 }
 
+/* ---------- home: section picker ---------- */
+.section-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+}
+.section-card:active {
+  border-color: #4a3a18;
+  background: var(--bg-3);
+}
+.section-card .section-num {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent);
+  border: 1px solid #4a3a18;
+  border-radius: 8px;
+  padding: 5px 7px;
+  background: #1e180c;
+}
+.section-card .section-meta {
+  flex: 1;
+  min-width: 0;
+}
+.section-card .section-count {
+  font-size: 12px;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.section-card .badge.hot {
+  background: #33201f;
+  color: var(--red);
+}
+
 /* ---------- home: sections ---------- */
 .section-head {
   display: flex;

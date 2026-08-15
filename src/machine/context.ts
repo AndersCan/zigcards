@@ -51,6 +51,7 @@ export function initialContext(): AppContext {
     settings: defaultCodeSettings(),
     settingsFrom: null,
     detailDeckId: null,
+    sectionId: null,
   };
 }
 

@@ -1,6 +1,7 @@
 import { Actor, type Clock, type Context } from "@mantaq/core";
 import { withTimeout } from "@mantaq/sugar";
 import type { Deck } from "../types.ts";
+import { SECTIONS } from "../sections.ts";
 import {
   advanceSession,
   beginSession,
@@ -31,6 +32,7 @@ import {
   openCredits,
   openDeck,
   openDeckDetail,
+  openSection,
   openSettings,
   openStats,
   reset,
@@ -39,6 +41,7 @@ import {
   reviewBack,
   reviewFront,
   reviewGrading,
+  section,
   settings,
   skip,
   states,
@@ -117,15 +120,52 @@ export function createAppActor(options: AppMachineOptions) {
         return s && s.idx >= s.order.length ? { state: done } : { state: reviewFront };
       };
 
+      const sectionExists = (id: string): boolean => SECTIONS.some((s) => s.id === id);
+
+      /** Sub-screens (review/detail/settings/done) return one level up: the
+       *  section picker when entered from a section, else the home picker. */
+      const backTarget = (ctx: AppContext) => ({
+        state: ctx.sectionId ? section : home,
+      });
+
       const pauseToHome = (context: Context<AppContext>) => {
-        context.set({ ...pauseSession(context.get()), settingsFrom: null, detailDeckId: null });
-        return { state: home };
+        const ctx = context.get();
+        context.set({ ...pauseSession(ctx), settingsFrom: null, detailDeckId: null });
+        return backTarget(ctx);
       };
 
       const finishToHome = (context: Context<AppContext>) => {
-        context.set({ ...clearSession(context.get()), settingsFrom: null });
-        return { state: home };
+        const ctx = context.get();
+        context.set({ ...clearSession(ctx), settingsFrom: null, detailDeckId: null });
+        return backTarget(ctx);
       };
+
+      m.on(home, openSection, (e, { context }) => {
+        if (!sectionExists(e.payload.sectionId)) return {};
+        context.set({
+          ...context.get(),
+          sectionId: e.payload.sectionId,
+          settingsFrom: null,
+          detailDeckId: null,
+        });
+        return { state: section };
+      });
+
+      m.on(section, openDeck, (e, { context, actor }) => {
+        const r = startOrResumeDeck(e.payload.deckId, context, actor.clock);
+        return r.ok ? { state: r.state } : {};
+      });
+
+      m.on(section, openDeckDetail, (e, { context }) => {
+        if (!decks[e.payload.deckId]) return {};
+        context.set({ ...context.get(), detailDeckId: e.payload.deckId });
+        return { state: deckDetail };
+      });
+
+      m.on(section, backToHome, (_, { context }) => {
+        context.set({ ...context.get(), sectionId: null, settingsFrom: null, detailDeckId: null });
+        return { state: home };
+      });
 
       m.on(home, openDeck, (e, { context, actor }) => {
         const r = startOrResumeDeck(e.payload.deckId, context, actor.clock);
@@ -218,6 +258,7 @@ export function createAppActor(options: AppMachineOptions) {
         };
 
       m.on(home, openSettings, openSettingsStep(home));
+      m.on(section, openSettings, openSettingsStep(section));
       m.on(reviewFront, openSettings, openSettingsStep(reviewFront));
       m.on(reviewBack, openSettings, openSettingsStep(reviewBack));
       m.on(deckDetail, openSettings, openSettingsStep(deckDetail));
@@ -251,6 +292,7 @@ export function createAppActor(options: AppMachineOptions) {
           history: [],
           settingsFrom: null,
           detailDeckId: null,
+          sectionId: null,
         });
         return { state: home };
       });

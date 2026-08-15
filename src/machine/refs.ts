@@ -1,7 +1,9 @@
 import { event, state } from "@mantaq/core";
+import type { SectionId } from "../types.ts";
 import type { CodeSettings } from "./types.ts";
 
 export const home = state("home")();
+export const section = state("section")();
 export const reviewFront = state("review.front")();
 export const reviewBack = state("review.back")();
 export const reviewGrading = state("review.grading")();
@@ -13,6 +15,7 @@ export const stats = state("stats")();
 
 export const states = [
   home,
+  section,
   reviewFront,
   reviewBack,
   reviewGrading,
@@ -23,6 +26,7 @@ export const states = [
   stats,
 ] as const;
 
+export const openSection = event("OPEN_SECTION")<{ sectionId: SectionId }>();
 export const openDeck = event("OPEN_DECK")<{ deckId: string }>();
 export const openDeckDetail = event("OPEN_DECK_DETAIL")<{ deckId: string }>();
 export const openStats = event("OPEN_STATS")();
@@ -41,6 +45,7 @@ export const openCredits = event("OPEN_CREDITS")();
 export const updateSettings = event("UPDATE_SETTINGS")<Partial<CodeSettings>>();
 
 export const inputs = [
+  openSection,
   openDeck,
   openDeckDetail,
   openStats,

@@ -11,6 +11,7 @@ import {
   grade,
   openDeck,
   openDeckDetail,
+  openSection,
   openSettings,
   openStats,
   reset,
@@ -19,7 +20,7 @@ import {
   skip,
   updateSettings,
 } from "../../src/machine/refs.ts";
-import type { Card, Deck } from "../../src/types.ts";
+import type { Card, Deck, SectionId } from "../../src/types.ts";
 
 function makeDeck(id: string, count: number): Deck {
   const cards: Card[] = Array.from({ length: count }, (_, i) => ({
@@ -610,5 +611,92 @@ describe("zigcards machine", () => {
     actor.send(closeSettings.create());
     actor.send(reset.create());
     expect(actor.snapshot().context.settings.codeSize).toBe(15);
+  });
+
+  /* ---- section picker ---- */
+
+  it("OPEN_SECTION enters the section with its id remembered", () => {
+    const { actor } = makeApp();
+    actor.send(openSection.create({ sectionId: "zig" }));
+    expect(matches(actor, "section")).toBe(true);
+    expect(actor.snapshot().context.sectionId).toBe("zig");
+  });
+
+  it("OPEN_SECTION with an unknown section id is ignored", () => {
+    const { actor } = makeApp();
+    actor.send(openSection.create({ sectionId: "nope" as SectionId }));
+    expect(matches(actor, "home")).toBe(true);
+    expect(actor.snapshot().context.sectionId).toBeNull();
+  });
+
+  it("OPEN_DECK from a section starts a fresh session", () => {
+    const { actor } = makeApp();
+    actor.send(openSection.create({ sectionId: "zig" }));
+    actor.send(openDeck.create({ deckId: "d1" }));
+    expect(matches(actor, "review.front")).toBe(true);
+    expect(actor.snapshot().context.sectionId).toBe("zig");
+  });
+
+  it("BACK_TO_HOME from a section clears the section and returns to the picker", () => {
+    const { actor } = makeApp();
+    actor.send(openSection.create({ sectionId: "zig" }));
+    actor.send(backToHome.create());
+    expect(matches(actor, "home")).toBe(true);
+    expect(actor.snapshot().context.sectionId).toBeNull();
+  });
+
+  it("BACK_TO_HOME mid-review from a section returns to that section", () => {
+    const { actor, clock } = makeApp(2);
+    actor.send(openSection.create({ sectionId: "zig" }));
+    actor.send(openDeck.create({ deckId: "d1" }));
+    actor.send(flip.create());
+    actor.send(grade.create({ known: true }));
+    clock.advance(GRADE_FLYOUT_MS);
+    actor.send(backToHome.create());
+    expect(matches(actor, "section")).toBe(true);
+    expect(actor.snapshot().context.sectionId).toBe("zig");
+    // the paused session is still resumable from the section
+    actor.send(openDeck.create({ deckId: "d1" }));
+    expect(matches(actor, "review.front")).toBe(true);
+    expect(actor.snapshot().context.session?.idx).toBe(1);
+  });
+
+  it("BACK_TO_HOME from done returns to the section, not the picker", () => {
+    const { actor, clock } = makeApp(1);
+    actor.send(openSection.create({ sectionId: "zig" }));
+    actor.send(openDeck.create({ deckId: "d1" }));
+    actor.send(flip.create());
+    actor.send(grade.create({ known: true }));
+    clock.advance(GRADE_FLYOUT_MS);
+    expect(matches(actor, "done")).toBe(true);
+    actor.send(backToHome.create());
+    expect(matches(actor, "section")).toBe(true);
+    expect(actor.snapshot().context.session).toBeNull();
+  });
+
+  it("OPEN_DECK_DETAIL from a section returns to that section on back", () => {
+    const { actor } = makeApp();
+    actor.send(openSection.create({ sectionId: "zig" }));
+    actor.send(openDeckDetail.create({ deckId: "d1" }));
+    expect(matches(actor, "deck.detail")).toBe(true);
+    actor.send(backToHome.create());
+    expect(matches(actor, "section")).toBe(true);
+  });
+
+  it("OPEN_SETTINGS from a section returns to that section on close", () => {
+    const { actor } = makeApp();
+    actor.send(openSection.create({ sectionId: "zig" }));
+    actor.send(openSettings.create());
+    expect(matches(actor, "settings")).toBe(true);
+    actor.send(closeSettings.create());
+    expect(matches(actor, "section")).toBe(true);
+  });
+
+  it("RESET from a section clears the section id", () => {
+    const { actor } = makeApp();
+    actor.send(openSection.create({ sectionId: "zig" }));
+    actor.send(reset.create());
+    expect(matches(actor, "home")).toBe(true);
+    expect(actor.snapshot().context.sectionId).toBeNull();
   });
 });

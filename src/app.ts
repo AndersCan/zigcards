@@ -22,6 +22,7 @@ import {
   openCredits,
   openDeck,
   openDeckDetail,
+  openSection,
   openSettings,
   openStats,
   reset,
@@ -36,7 +37,7 @@ import {
   type DeckIndex,
 } from "./machine/index.ts";
 import { SECTIONS } from "./sections.ts";
-import type { Card, CardType, Deck } from "./types.ts";
+import type { Card, CardType, Deck, Section } from "./types.ts";
 
 function $(id: string): HTMLElement {
   const el = document.getElementById(id);
@@ -46,6 +47,7 @@ function $(id: string): HTMLElement {
 
 const screens: Record<ScreenName, HTMLElement> = {
   home: $("screen-home"),
+  section: $("screen-section"),
   review: $("screen-review"),
   done: $("screen-done"),
   settings: $("screen-settings"),
@@ -102,6 +104,7 @@ function applyCodeSettings(settings: CodeSettings): void {
 
 type ScreenName =
   | "home"
+  | "section"
   | "review"
   | "done"
   | "settings"
@@ -179,60 +182,53 @@ function show(name: ScreenName): void {
     name === "settings" || name === "credits" || name === "error" || name === "done";
 }
 
-/* ---------- home ---------- */
+/* ---------- home (section picker) ---------- */
 
-function homeTemplate(ctx: AppContext): TemplateResult {
+function groupDecksBySection(): Map<string, Deck[]> {
   const bySection = new Map<string, Deck[]>();
   for (const deck of window.ZigCards.decks) {
     const list = bySection.get(deck.section) ?? [];
     list.push(deck);
     bySection.set(deck.section, list);
   }
-  const sections = SECTIONS.filter((s) => bySection.has(s.id)).sort((a, b) => a.order - b.order);
+  return bySection;
+}
+
+function orderedSections(): Section[] {
+  const bySection = groupDecksBySection();
+  return SECTIONS.filter((s) => bySection.has(s.id)).sort((a, b) => a.order - b.order);
+}
+
+function sectionMeta(decks: Deck[], ctx: AppContext): TemplateResult {
+  const now = Date.now();
+  const totalCards = decks.reduce((n, d) => n + d.cards.length, 0);
+  const due = decks.reduce((n, d) => n + deckProgress(d, ctx.progress, now).due, 0);
+  return html`
+    <span class="section-count">${totalCards} cards</span>
+    ${due > 0 ? html`<span class="badge hot">${due} due</span>` : ""}
+  `;
+}
+
+function homeTemplate(ctx: AppContext): TemplateResult {
+  const bySection = groupDecksBySection();
   return html`
     <div class="hero">
       <h1>ZigCards</h1>
       <p>
         Flashcards for learning Zig and Mojo &mdash; with the memory basics JavaScript never made
-        you learn.
+        you learn. Pick a topic to see its decks.
       </p>
     </div>
-    ${sections.map(
+    ${orderedSections().map(
       (sec): unknown => html`
-        <div class="section-head">
+        <div class="section-card" @click=${() => send(openSection.create({ sectionId: sec.id }))}>
           <span class="section-num">${String(sec.order)}</span>
           <span class="section-meta">
             <span class="section-title">${sec.title}</span>
             <br /><span class="section-blurb">${sec.blurb}</span>
           </span>
+          ${sectionMeta(bySection.get(sec.id)!, ctx)}
         </div>
-        ${bySection
-          .get(sec.id)!
-          .slice()
-          .sort((a, b) => a.order - b.order)
-          .map(
-            (deck): unknown => html`
-              <div class="deck-row" @click=${() => send(openDeck.create({ deckId: deck.id }))}>
-                <span class="num">${String(deck.order).padStart(2, "0")}</span>
-                <span class="meta">
-                  <span class="name">${deck.title}</span>
-                  <br /><span class="sub">${deck.blurb}</span>
-                </span>
-                ${ctx.session?.deckId === deck.id ? html`<span class="badge resume">resume</span>` : ""}
-                ${deckProgressBadge(deck, ctx.progress, Date.now())}
-                <button
-                  class="row-info"
-                  aria-label="Deck details"
-                  @click=${(e: Event): void => {
-                    e.stopPropagation();
-                    send(openDeckDetail.create({ deckId: deck.id }));
-                  }}
-                >
-                  &#8505;
-                </button>
-              </div>
-            `,
-          )}
       `,
     )}
     <div class="footer-note">
@@ -265,10 +261,65 @@ function deckProgressBadge(
   return html`<span class="badge done">&#10003;</span>`;
 }
 
+function deckRow(deck: Deck, ctx: AppContext): TemplateResult {
+  return html`
+    <div class="deck-row" @click=${() => send(openDeck.create({ deckId: deck.id }))}>
+      <span class="num">${String(deck.order).padStart(2, "0")}</span>
+      <span class="meta">
+        <span class="name">${deck.title}</span>
+        <br /><span class="sub">${deck.blurb}</span>
+      </span>
+      ${ctx.session?.deckId === deck.id ? html`<span class="badge resume">resume</span>` : ""}
+      ${deckProgressBadge(deck, ctx.progress, Date.now())}
+      <button
+        class="row-info"
+        aria-label="Deck details"
+        @click=${(e: Event): void => {
+          e.stopPropagation();
+          send(openDeckDetail.create({ deckId: deck.id }));
+        }}
+      >
+        &#8505;
+      </button>
+    </div>
+  `;
+}
+
+/* ---------- section (deck list) ---------- */
+
+function sectionTemplate(ctx: AppContext): TemplateResult {
+  const sec = SECTIONS.find((s) => s.id === ctx.sectionId);
+  if (!sec) return html``;
+  const decks = window.ZigCards.decks
+    .filter((d) => d.section === sec.id)
+    .sort((a, b) => a.order - b.order);
+  return html`
+    <div class="section-head">
+      <span class="section-num">${String(sec.order)}</span>
+      <span class="section-meta">
+        <span class="section-title">${sec.title}</span>
+        <br /><span class="section-blurb">${sec.blurb}</span>
+      </span>
+    </div>
+    ${decks.map((deck) => deckRow(deck, ctx))}
+  `;
+}
+
 function renderHome(ctx: AppContext): void {
-  setTopbar("ZigCards", "choose a deck", 0, 0);
+  setTopbar("ZigCards", "choose a topic", 0, 0);
+  $("tb-count").hidden = true;
+  $("tb-progress-wrap").hidden = true;
   show("home");
   render(homeTemplate(ctx), screens.home);
+}
+
+function renderSection(ctx: AppContext): void {
+  const sec = SECTIONS.find((s) => s.id === ctx.sectionId);
+  $("tb-count").hidden = true;
+  $("tb-progress-wrap").hidden = true;
+  setTopbar(sec?.title ?? "Decks", sec ? "choose a deck" : "", 0, 0);
+  show("section");
+  render(sectionTemplate(ctx), screens.section);
 }
 
 /* Test hook: send the machine back to a clean home (used by the vitest browser setup). */
@@ -883,6 +934,7 @@ function renderApp(snap: Snapshot<AppContext>, prev: Snapshot<AppContext>): void
   applyCodeSettings(snap.context.settings);
   const [name] = snap.path;
   if (name === "home") renderHome(snap.context);
+  else if (name === "section") renderSection(snap.context);
   else if (name === "done") renderDone(snap);
   else if (name === "settings") renderSettings(snap.context);
   else if (name === "credits") renderCredits();

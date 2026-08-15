@@ -70,6 +70,20 @@ describe("machine graph coverage", () => {
     send("OPEN_SETTINGS");
     send("RESET"); // settings → home
 
+    /* ---- section picker ---- */
+    send("OPEN_SECTION", { sectionId: "zig" }); // home → section
+    send("OPEN_DECK_DETAIL", { deckId: "d1" }); // section → deck.detail
+    send("BACK_TO_HOME"); // deck.detail → section
+    send("OPEN_SETTINGS"); // section → settings
+    send("CLOSE_SETTINGS"); // → section
+    send("OPEN_DECK", { deckId: "d1" }); // section → review.front
+    send("BACK_TO_HOME"); // review.front → section (paused)
+    send("RESET"); // section → home (clears the paused session)
+    send("OPEN_SECTION", { sectionId: "zig" });
+    send("RESET"); // section → home
+    send("OPEN_SECTION", { sectionId: "zig" });
+    send("BACK_TO_HOME"); // section → home
+
     /* ---- review.front ---- */
     send("OPEN_DECK", { deckId: "d1" });
     send("UPDATE_SETTINGS", { printWidth: 70 });
@@ -152,16 +166,35 @@ describe("machine graph coverage", () => {
     send("SKIP"); // → done
     send("RESET"); // done → home
 
+    /* ---- section-aware review.grading / done backs ---- */
+    send("OPEN_SECTION", { sectionId: "zig" }); // home → section
+    send("OPEN_DECK", { deckId: "d1" });
+    send("FLIP");
+    send("GRADE", { known: true }); // → review.grading
+    send("BACK_TO_HOME"); // review.grading → section (paused, timer aborted)
+    send("RESET"); // section → home
+    send("OPEN_SECTION", { sectionId: "zig" });
+    send("OPEN_DECK", { deckId: "d1" });
+    walk([true, true, true]); // → done
+    send("BACK_TO_HOME"); // done → section (session cleared)
+    send("RESET"); // section → home
+
     /* The instrument records only transitions that change state; internal
        events (GRADE_DONE) and self-transitions (RESET_PROGRESS on home) are
        unobservable, so assert every observable state-changing transition. */
     h.assertAllStatesVisited();
     const keyTransitions: ReadonlyArray<readonly [string, string]> = [
+      ["home", "OPEN_SECTION"],
       ["home", "OPEN_DECK"],
       ["home", "OPEN_DECK_DETAIL"],
       ["home", "OPEN_STATS"],
       ["home", "OPEN_SETTINGS"],
       ["home", "OPEN_CREDITS"],
+      ["section", "OPEN_DECK"],
+      ["section", "OPEN_DECK_DETAIL"],
+      ["section", "OPEN_SETTINGS"],
+      ["section", "BACK_TO_HOME"],
+      ["section", "RESET"],
       ["deck.detail", "OPEN_DECK"],
       ["deck.detail", "OPEN_SETTINGS"],
       ["deck.detail", "BACK_TO_HOME"],

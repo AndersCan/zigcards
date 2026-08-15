@@ -305,6 +305,7 @@ describe("persistence", () => {
             settings: persisted.settings,
             settingsFrom: null,
             detailDeckId: null,
+            sectionId: null,
           }
         : undefined,
     });

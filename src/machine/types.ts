@@ -1,8 +1,9 @@
-import type { Deck } from "../types.ts";
+import type { Deck, SectionId } from "../types.ts";
 import type { StateRef } from "@mantaq/core";
 
 export type SettingsSource =
   | StateRef<"home", unknown, false>
+  | StateRef<"section", unknown, false>
   | StateRef<"review.front", unknown, false>
   | StateRef<"review.back", unknown, false>
   | StateRef<"deck.detail", unknown, false>
@@ -63,6 +64,7 @@ export interface AppContext {
   settings: CodeSettings;
   settingsFrom: SettingsSource | null;
   detailDeckId: string | null;
+  sectionId: SectionId | null;
 }
 
 export type DeckIndex = Record<string, Deck>;
