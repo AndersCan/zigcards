@@ -3,7 +3,7 @@ import type { Deck } from "../src/types.ts";
 const deck: Deck = {
   id: "urdu-time",
   title: "Urdu: time & days",
-  order: 5,
+  order: 11,
   blurb: "Days of the week, times of day, and schedules",
   section: "urdu",
   cards: [

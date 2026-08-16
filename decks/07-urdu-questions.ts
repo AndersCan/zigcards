@@ -3,7 +3,7 @@ import type { Deck } from "../src/types.ts";
 const deck: Deck = {
   id: "urdu-questions",
   title: "Urdu: basic questions",
-  order: 3,
+  order: 7,
   blurb: "Asking what, where, when, why, and how",
   section: "urdu",
   cards: [

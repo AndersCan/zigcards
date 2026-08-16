@@ -19,17 +19,28 @@ import deckMojoOwnership from "../decks/15-mojo-ownership.ts";
 import deckMojoLifecycle from "../decks/16-mojo-lifecycle.ts";
 import deckMojoMetaprogramming from "../decks/17-mojo-metaprogramming.ts";
 import deckMojoPointersTesting from "../decks/18-mojo-pointers-testing.ts";
-import deckUrduGreetings from "../decks/00-urdu-greetings.ts";
-import deckUrduPoliteness from "../decks/01-urdu-politeness.ts";
-import deckUrduIntroductions from "../decks/02-urdu-introductions.ts";
-import deckUrduQuestions from "../decks/03-urdu-questions.ts";
-import deckUrduNumbers from "../decks/04-urdu-numbers.ts";
-import deckUrduTime from "../decks/05-urdu-time.ts";
-import deckUrduFood from "../decks/06-urdu-food.ts";
-import deckUrduShopping from "../decks/07-urdu-shopping.ts";
-import deckUrduDirections from "../decks/08-urdu-directions.ts";
-import deckUrduEmergencies from "../decks/09-urdu-emergencies.ts";
-import deckUrduFeelings from "../decks/10-urdu-feelings.ts";
+import deckUrduGreetingsWords from "../decks/00-urdu-greetings-words.ts";
+import deckUrduGreetings from "../decks/01-urdu-greetings.ts";
+import deckUrduPolitenessWords from "../decks/02-urdu-politeness-words.ts";
+import deckUrduPoliteness from "../decks/03-urdu-politeness.ts";
+import deckUrduIntroductionsWords from "../decks/04-urdu-introductions-words.ts";
+import deckUrduIntroductions from "../decks/05-urdu-introductions.ts";
+import deckUrduQuestionsWords from "../decks/06-urdu-questions-words.ts";
+import deckUrduQuestions from "../decks/07-urdu-questions.ts";
+import deckUrduNumbersWords from "../decks/08-urdu-numbers-words.ts";
+import deckUrduNumbers from "../decks/09-urdu-numbers.ts";
+import deckUrduTimeWords from "../decks/10-urdu-time-words.ts";
+import deckUrduTime from "../decks/11-urdu-time.ts";
+import deckUrduFoodWords from "../decks/12-urdu-food-words.ts";
+import deckUrduFood from "../decks/13-urdu-food.ts";
+import deckUrduShoppingWords from "../decks/14-urdu-shopping-words.ts";
+import deckUrduShopping from "../decks/15-urdu-shopping.ts";
+import deckUrduDirectionsWords from "../decks/16-urdu-directions-words.ts";
+import deckUrduDirections from "../decks/17-urdu-directions.ts";
+import deckUrduEmergenciesWords from "../decks/18-urdu-emergencies-words.ts";
+import deckUrduEmergencies from "../decks/19-urdu-emergencies.ts";
+import deckUrduFeelingsWords from "../decks/20-urdu-feelings-words.ts";
+import deckUrduFeelings from "../decks/21-urdu-feelings.ts";
 
 const decks: Deck[] = [
   deckMemoryBasics,
@@ -52,16 +63,27 @@ const decks: Deck[] = [
   deckMojoLifecycle,
   deckMojoMetaprogramming,
   deckMojoPointersTesting,
+  deckUrduGreetingsWords,
   deckUrduGreetings,
+  deckUrduPolitenessWords,
   deckUrduPoliteness,
+  deckUrduIntroductionsWords,
   deckUrduIntroductions,
+  deckUrduQuestionsWords,
   deckUrduQuestions,
+  deckUrduNumbersWords,
   deckUrduNumbers,
+  deckUrduTimeWords,
   deckUrduTime,
+  deckUrduFoodWords,
   deckUrduFood,
+  deckUrduShoppingWords,
   deckUrduShopping,
+  deckUrduDirectionsWords,
   deckUrduDirections,
+  deckUrduEmergenciesWords,
   deckUrduEmergencies,
+  deckUrduFeelingsWords,
   deckUrduFeelings,
 ];
 

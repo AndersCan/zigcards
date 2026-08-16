@@ -3,7 +3,7 @@ import type { Deck } from "../src/types.ts";
 const deck: Deck = {
   id: "urdu-introductions",
   title: "Urdu: introductions",
-  order: 2,
+  order: 5,
   blurb: "Names, origins, and getting to know someone",
   section: "urdu",
   cards: [

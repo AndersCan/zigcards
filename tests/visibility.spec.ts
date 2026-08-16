@@ -5,6 +5,9 @@ import { bootstrapApp, resetUi, waitFor } from "./helpers";
 // Walk every card in every deck: the front must show a clickable "Show answer",
 // and after revealing, both grade buttons must be visible AND inside the
 // viewport. This is the user-facing promise: "there's always something to tap."
+//
+// One test per (viewport × section) so each test walks a bounded number of
+// cards; as decks are added the suite still fits its per-test timeout.
 
 const VIEWPORTS = [
   { width: 390, height: 844 }, // typical phone
@@ -12,30 +15,30 @@ const VIEWPORTS = [
   { width: 1440, height: 900 }, // desktop
 ];
 
+const SECTION_IDS = ["prerequisites", "zig", "mojo", "urdu"];
+
 beforeAll(bootstrapApp);
 beforeEach(resetUi);
 
 for (const viewport of VIEWPORTS) {
-  test(`grade buttons visible on every card (${viewport.width}x${viewport.height})`, async () => {
-    await page.viewport(viewport.width, viewport.height);
+  for (const sectionId of SECTION_IDS) {
+    test(`grade buttons visible on every card (${viewport.width}x${viewport.height}, ${sectionTitle(sectionId)})`, async () => {
+      await page.viewport(viewport.width, viewport.height);
 
-    const totalCards = window.ZigCards.decks.reduce((n, d) => n + d.cards.length, 0);
-    expect(totalCards).toBeGreaterThan(0);
+      const decksInSection = window.ZigCards.decks.filter((d) => d.section === sectionId);
+      const totalCards = decksInSection.reduce((n, d) => n + d.cards.length, 0);
+      expect(decksInSection.length).toBeGreaterThan(0);
 
-    const sections = [...new Set(window.ZigCards.decks.map((d) => d.section))];
-    let reviewed = 0;
-
-    for (let s = 0; s < sections.length; s++) {
-      // home picker → section card
+      // home picker → this section's deck list
       const sectionCards = [...document.querySelectorAll<HTMLElement>(".section-card")];
       const sectionCard = sectionCards.find(
-        (c) => c.querySelector(".section-title")?.textContent === sectionTitle(sections[s]),
+        (c) => c.querySelector(".section-title")?.textContent === sectionTitle(sectionId),
       );
-      if (!sectionCard) throw new Error(`section card not found: ${sections[s]}`);
+      if (!sectionCard) throw new Error(`section card not found: ${sectionId}`);
       await userEvent.click(sectionCard);
       await waitFor(() => !hidden("#screen-section"));
 
-      const decksInSection = window.ZigCards.decks.filter((d) => d.section === sections[s]);
+      let reviewed = 0;
       for (let d = 0; d < decksInSection.length; d++) {
         const deckCards = decksInSection[d].cards.length;
         // rows are re-rendered by lit-html after every deck; re-query each time
@@ -48,10 +51,10 @@ for (const viewport of VIEWPORTS) {
         await waitFor(() => !hidden("#screen-review"));
 
         for (let c = 0; c < deckCards; c++) {
-          const where = `section ${s + 1}/${sections.length} deck ${d + 1}/${decksInSection.length} card ${c + 1}/${deckCards}`;
+          const where = `section ${sectionId} deck ${d + 1}/${decksInSection.length} card ${c + 1}/${deckCards}`;
 
           // front: the one obvious action is the Show-answer button
-          expect(document.querySelector("#card")).not.toBeNull();
+          expect(document.querySelector("#card"), `${where}: card present`).not.toBeNull();
           expect(
             document.querySelector("#btn-show"),
             `${where}: Show answer visible`,
@@ -104,13 +107,9 @@ for (const viewport of VIEWPORTS) {
         await waitFor(() => !hidden("#screen-section"));
       }
 
-      // section finished -> back to the home picker
-      await userEvent.click(el("#btn-back"));
-      await waitFor(() => !hidden("#screen-home"));
-    }
-
-    expect(reviewed).toBe(totalCards);
-  }, 180_000);
+      expect(reviewed).toBe(totalCards);
+    }, 180_000);
+  }
 }
 
 function sectionTitle(id: string): string {
@@ -131,10 +130,4 @@ function sectionTitle(id: string): string {
 function hidden(selector: string): boolean {
   const node = document.querySelector(selector);
   return node === null || (node as HTMLElement).hidden === true;
-}
-
-function el(selector: string): HTMLElement {
-  const node = document.querySelector(selector);
-  if (!node) throw new Error(`${selector} not found`);
-  return node as HTMLElement;
 }

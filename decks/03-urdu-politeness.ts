@@ -3,7 +3,7 @@ import type { Deck } from "../src/types.ts";
 const deck: Deck = {
   id: "urdu-politeness",
   title: "Urdu: politeness & apologies",
-  order: 1,
+  order: 3,
   blurb: "Please, thank you, sorry — the everyday manners",
   section: "urdu",
   cards: [

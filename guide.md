@@ -128,6 +128,23 @@ These decks teach common Urdu phrases for learning the language. Rules:
    standard romanized transliteration on the same line (e.g.
    `"شکریہ — shukriya"`). Flashcard-sized like all cards.
 
+### Word decks
+
+Every category deck is preceded by a **word deck** (id `<category>-words`,
+ordered just before the phrase deck, e.g. `urdu-greetings-words` before
+`urdu-greetings`). Word decks teach the individual words the phrase deck
+builds on, so the sentences make sense when the learner reaches them.
+
+- One word per card, English → Urdu on the same model: `front` asks for the
+  Urdu word, `back` is `"اردو — transliteration"`.
+- The `explanation` MUST lead with **pronunciation** — syllables and stress
+  (e.g. "Pronounced shuk-REE-ya, stress on the middle syllable") plus any
+  tricky sounds (aspirated `kh`/`bh`, retroflex `t`/`d`, throaty `q`/`gh`).
+- Then a one-sentence note tying the word to the phrase deck's sentences
+  (e.g. "'Khuda' appears in 'khuda hafiz' — God be your protector").
+- `source` follows the category convention with a `words` suffix, e.g.
+  `source: "urdu greetings words"`.
+
 ## 2c. How the review engine treats your cards
 
 Reviews run on spaced repetition (SM-2 flavored). Every grade is a review

@@ -3,7 +3,7 @@ import type { Deck } from "../src/types.ts";
 const deck: Deck = {
   id: "urdu-numbers",
   title: "Urdu: numbers",
-  order: 4,
+  order: 9,
   blurb: "Counting in Urdu — 1 to 100 and beyond",
   section: "urdu",
   cards: [
