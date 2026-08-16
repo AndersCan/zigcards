@@ -6,7 +6,7 @@ source of truth: use these exact terms in code, decks, UI, and docs.
 ## Things
 
 - **Section** — top-level grouping; one curriculum or language area
-  (`prerequisites`, `zig`, `mojo`, `urdu`). Source: `src/sections.ts`.
+  (`prerequisites`, `zig`, `urdu`). Source: `src/sections.ts`.
 - **Deck** — a named, ordered set of cards within a section (`decks/*.ts`).
 - **Card** — one prompt/answer pair; belongs to a deck.
 - **Card type** — how a card is answered: `output` | `fix` | `concept`.

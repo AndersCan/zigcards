@@ -1,5 +1,5 @@
 ---
-zigcards: patch
+zigcards: minor
 ---
 
-Add a domain vocabulary doc (VOCABULARY.md) defining the app's terms and reference it from AGENTS.md
+Remove the Mojo section (decks, validation, credits, docs); add a domain vocabulary doc (VOCABULARY.md) referenced from AGENTS.md

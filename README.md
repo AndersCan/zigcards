@@ -1,19 +1,17 @@
 # ZigCards
 
-Flashcards for learning Zig and Mojo, built from the
-[ziglings](https://codeberg.org/ziglings/exercises) and
-[mojo-quest](https://github.com/modular/mojo-quest) exercise sets. Mobile-first,
+Flashcards for learning Zig, built from the
+[ziglings](https://codeberg.org/ziglings/exercises) exercise set. Mobile-first,
 dark, thumb-friendly, works offline.
 
 **Try it live:** <https://anderscan.github.io/zigcards/>
 
 **The content is not invented.** Every deck card is grounded in a specific
-exercise (cite it in the `source` field — `ziglings NNN_*` or
-`mojo-quest MQ-NNN`). Code snippets are copied verbatim from the exercise
-sources, and every expected output is checked against the exercise sets' own
-answer keys (see `scripts/validate.mjs`). The Prerequisites section is original
-content, clearly separated on the home screen and credited in the app's
-acknowledgements page.
+exercise (cite it in the `source` field — `ziglings NNN_*`). Code snippets are
+copied verbatim from the exercise sources, and every expected output is checked
+against the exercise set's own answer keys (see `scripts/validate.mjs`). The
+Prerequisites and Urdu sections are original content, clearly separated on the
+home screen and credited in the app's acknowledgements page.
 
 ## Quick start
 
@@ -39,7 +37,7 @@ vp run ready       # the full CI gate: check + validate + build + test
 ```
 
 CI (`.github/workflows/ci.yml`) runs `vp run ready` on push/PR to `main`,
-cloning ziglings and mojo-quest to verify card content. Changes are tracked
+cloning ziglings to verify card content. Changes are tracked
 with [`bumpy`](https://bumpy.varlock.dev) bump files (`.bumpy/`) and required
 on PRs. Run `vp exec playwright install chromium` once before the first local
 test run.
@@ -57,7 +55,7 @@ src/machine/      Review engine: mantaq state machine, SM-2 SRS scheduling,
 src/main.ts       Entry point; registers the decks
 src/globals.d.ts  window.ZigCards + prism component declarations
 decks/*.ts        Deck data modules (typed ES modules, one per teaching band)
-scripts/validate.mjs  Schema + fidelity + output checks against ziglings/mojo-quest
+scripts/validate.mjs  Schema + fidelity + output checks against ziglings
 css/app.css       Styles (dark, mobile-first; Prism token colors)
 tests/e2e.spec.ts     Vitest browser e2e (real Chromium)
 tests/visibility.spec.ts  Every-card visibility walk (3 viewports)
@@ -68,34 +66,36 @@ transpiled by Vite — no separate emit step.
 
 ## Decks
 
-| #   | Section       | Deck                            | Content                            |
-| --- | ------------- | ------------------------------- | ---------------------------------- |
-| 0   | Prerequisites | Memory basics                   | bits, bytes, addresses, references |
-| 0   | Prerequisites | Stack & heap                    | call frames, lifetimes, the GC     |
-| 1   | Zig           | Hello, Zig                      | ziglings 001–002                   |
-| 2   | Zig           | Values: types, arrays, strings  | ziglings 003–008                   |
-| 3   | Zig           | Control Flow                    | ziglings 009–017                   |
-| 4   | Zig           | Functions                       | ziglings 018–020                   |
-| 5   | Zig           | Errors & defer                  | ziglings 021–029                   |
-| 6   | Zig           | switch, unreachable, if-error   | ziglings 030–034                   |
-| 7   | Zig           | Enums & structs                 | ziglings 035–038                   |
-| 8   | Zig           | Pointers                        | ziglings 039–044                   |
-| 9   | Zig           | Optionals                       | ziglings 045–046                   |
-| 1   | Mojo          | Mojo: basics & functions        | mojo-quest MQ-1xx                  |
-| 2   | Mojo          | Mojo: variables & collections   | mojo-quest MQ-2xx                  |
-| 3   | Mojo          | Mojo: operators & control flow  | mojo-quest MQ-3xx                  |
-| 4   | Mojo          | Mojo: errors & context managers | mojo-quest MQ-4xx                  |
-| 5   | Mojo          | Mojo: structs & modules         | mojo-quest MQ-5xx                  |
-| 6   | Mojo          | Mojo: value ownership           | mojo-quest MQ-6xx                  |
-| 7   | Mojo          | Mojo: value lifecycle           | mojo-quest MQ-7xx                  |
-| 8   | Mojo          | Mojo: metaprogramming           | mojo-quest MQ-8xx                  |
-| 9   | Mojo          | Mojo: pointers & testing        | mojo-quest MQ-9xx                  |
+| #   | Section       | Deck                           | Content                            |
+| --- | ------------- | ------------------------------ | ---------------------------------- |
+| 0   | Prerequisites | Memory basics                  | bits, bytes, addresses, references |
+| 0   | Prerequisites | Stack & heap                   | call frames, lifetimes, the GC     |
+| 1   | Zig           | Hello, Zig                     | ziglings 001–002                   |
+| 2   | Zig           | Values: types, arrays, strings | ziglings 003–008                   |
+| 3   | Zig           | Control Flow                   | ziglings 009–017                   |
+| 4   | Zig           | Functions                      | ziglings 018–020                   |
+| 5   | Zig           | Errors & defer                 | ziglings 021–029                   |
+| 6   | Zig           | switch, unreachable, if-error  | ziglings 030–034                   |
+| 7   | Zig           | Enums & structs                | ziglings 035–038                   |
+| 8   | Zig           | Pointers                       | ziglings 039–044                   |
+| 9   | Zig           | Optionals                      | ziglings 045–046                   |
+| 0   | Urdu          | Urdu: greetings                | everyday phrases                   |
+| 1   | Urdu          | Urdu: politeness & apologies   | everyday phrases                   |
+| 2   | Urdu          | Urdu: introductions            | everyday phrases                   |
+| 3   | Urdu          | Urdu: basic questions          | everyday phrases                   |
+| 4   | Urdu          | Urdu: numbers                  | everyday phrases                   |
+| 5   | Urdu          | Urdu: time & days              | everyday phrases                   |
+| 6   | Urdu          | Urdu: food & drink             | everyday phrases                   |
+| 7   | Urdu          | Urdu: shopping                 | everyday phrases                   |
+| 8   | Urdu          | Urdu: directions & travel      | everyday phrases                   |
+| 9   | Urdu          | Urdu: emergencies & health     | everyday phrases                   |
+| 10  | Urdu          | Urdu: feelings & small talk    | everyday phrases                   |
 
 The **Prerequisites** section is original memory/foundations content written
 for this app — the parts a JavaScript developer never had to think about. The
-**Zig** section is built from the ziglings exercise sequence; the **Mojo**
-section is built from the mojo-quest exercise sequence; the app's "Thanks &
-acknowledgements" page credits ziglings, mojo-quest, and their authors.
+**Zig** section is built from the ziglings exercise sequence; the **Urdu**
+section is original language-learning content; the app's "Thanks &
+acknowledgements" page credits ziglings and its author.
 
 Content targets the Zig version required by `ziglings/build.zig` (currently a
 `0.17.0-dev` build). The expected outputs in the answer key and the healed
@@ -118,13 +118,11 @@ vp run validate
 Checks: required card fields, valid types, unique ids, valid `section`, and —
 for `zig` decks — `source` files exist, every code/backCode line exists in the
 exercise source, and every `output`-type card's answer matches the ziglings
-answer key. `mojo` decks get the same treatment against a mojo-quest checkout
-and its answer key. `prerequisites` decks are schema-checked plus must be
-concept-only (`prereq `-prefixed `source`, no `code`/`backCode`).
+answer key. `prerequisites` and `urdu` decks are schema-checked plus must be
+concept-only (`prereq `/`urdu `-prefixed `source`, no `code`/`backCode`).
 
-The ziglings and mojo-quest sources are not vendored; point at checkouts via
-`ZIGLINGS_DIR`/`ZIGLINGS_HEALED` and `MOJO_QUEST_DIR` (defaults: `../ziglings`,
-`/tmp/healed`, `../mojo-quest`).
+The ziglings sources are not vendored; point at a checkout via
+`ZIGLINGS_DIR`/`ZIGLINGS_HEALED` (defaults: `../ziglings`, `/tmp/healed`).
 
 ## Review engine
 
@@ -152,6 +150,4 @@ The ziglings and mojo-quest sources are not vendored; point at checkouts via
 
 Card content derives from ziglings (MIT), which is in turn
 [CC-BY-SA-3.0](https://github.com/ratfactor/ziglings#license)-licensed content
-plus original material, and from mojo-quest
-([Apache License v2.0 with LLVM Exceptions](https://llvm.org/LICENSE.txt)).
-See `../ziglings/LICENSE` and `../mojo-quest`.
+plus original material. See `../ziglings/LICENSE`.
