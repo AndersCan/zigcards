@@ -37,6 +37,7 @@ import {
   type DeckIndex,
 } from "./machine/index.ts";
 import { SECTIONS } from "./sections.ts";
+import { withViewTransition } from "./transitions.ts";
 import type { Card, CardType, Deck, Section } from "./types.ts";
 
 function $(id: string): HTMLElement {
@@ -151,8 +152,30 @@ function boot(): void {
   actor.on("change", onMachineChange);
 }
 
+/** Group the review sub-states into one "screen" so only real navigation
+ *  (home ↔ section ↔ review ↔ done ↔ …) gets a view transition. The
+ *  within-review steps — flip reveal, grade fly-out, next card — keep their
+ *  own CSS animations and re-render immediately. */
+function screenName(path: string[]): string {
+  const name = path[0] ?? "";
+  return name.startsWith("review.") ? "review" : name;
+}
+
+/** Latest snapshot seen. The view-transition update callback runs a task
+ *  after the machine change that queued it, and a newer change may have
+ *  rendered directly in between; a stale callback must not clobber that newer
+ *  render, so it only re-renders while its snapshot is still current. */
+let latestSnap: Snapshot<AppContext> | null = null;
+
 function onMachineChange(snap: Snapshot<AppContext>, prev: Snapshot<AppContext>): void {
-  renderApp(snap, prev);
+  latestSnap = snap;
+  if (screenName(snap.path) !== screenName(prev.path)) {
+    withViewTransition(() => {
+      if (latestSnap === snap) renderApp(snap, prev);
+    });
+  } else {
+    renderApp(snap, prev);
+  }
 }
 
 function setTopbar(title: string | null, sub: string | null, idx: number, len: number): void {
@@ -433,6 +456,21 @@ function creditsTemplate(): TemplateResult {
           >Mantaq</a
         >, <a href="https://prismjs.com" target="_blank" rel="noopener noreferrer">Prism</a>, and
         <a href="https://viteplus.dev" target="_blank" rel="noopener noreferrer">Vite+</a>.
+      </p>
+      <p>
+        Screen transitions use the
+        <a
+          href="https://developer.chrome.com/docs/web-platform/view-transitions"
+          target="_blank"
+          rel="noopener noreferrer"
+          >View Transitions API</a
+        >
+        in the same pattern as
+        <a href="https://github.com/AndersCan/justus" target="_blank" rel="noopener noreferrer"
+          >Justus</a
+        >
+        &mdash; a photo-sharing app by the same author &mdash; which wraps its re-renders in
+        <code class="inline">document.startViewTransition()</code>.
       </p>
     </div>
   `;

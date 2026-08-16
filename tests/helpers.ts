@@ -20,12 +20,19 @@ export async function bootstrapApp(): Promise<void> {
 }
 
 /* Per-test reset: fresh progress + a clean home screen, driven through the
-   machine's RESET event (which also clears progress and persists the wipe). */
+   machine's RESET event (which also clears progress and persists the wipe).
+   Navigating back to home is a view transition, so wait for it to render. */
 export async function resetUi(): Promise<void> {
   const { resetToHome } = await import("../src/app.ts");
   resetToHome();
+  await waitFor(() => !hidden("#screen-home"));
   await page.viewport(390, 844);
   await userEvent.unhover(document.body);
+}
+
+function hidden(selector: string): boolean {
+  const node = document.querySelector(selector);
+  return node === null || (node as HTMLElement).hidden === true;
 }
 
 /* Poll a DOM condition instead of sleeping on fixed animation timers. */

@@ -68,6 +68,7 @@ test("opening a section shows only that section's decks", async () => {
 
 test("starting a deck shows the first card and progress", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   expect(el("#card")).toBeDefined();
   expect(el("#tb-count").textContent).toBe("1/4");
   expect(el(".card-type").textContent).toBe("fix this");
@@ -82,6 +83,7 @@ test("starting a deck shows the first card and progress", async () => {
 
 test("flip reveals the back, then grading advances", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   await userEvent.click(el("#card"));
   expect(hidden("#card-back")).toBe(false);
   // grade buttons replace the Show-answer button and are on-screen
@@ -98,6 +100,7 @@ test("flip reveals the back, then grading advances", async () => {
 
 test("keyboard: space flips, arrow right grades", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   await userEvent.keyboard(" ");
   expect(hidden("#card-back")).toBe(false);
   await userEvent.keyboard("{ArrowRight}");
@@ -106,6 +109,7 @@ test("keyboard: space flips, arrow right grades", async () => {
 
 test("completing a session shows results and persists progress", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   const total = 4;
   for (let i = 0; i < total; i++) {
     if (hidden("#card-back")) {
@@ -126,7 +130,7 @@ test("completing a session shows results and persists progress", async () => {
 
   // back to the deck list; the reviewed deck shows a progress badge
   await userEvent.click(el(".ghost-btn"));
-  expect(hidden("#screen-section")).toBe(false);
+  await waitFor(() => !hidden("#screen-section"));
   const helloRows = [...document.querySelectorAll<HTMLElement>(".deck-row")].filter((r) =>
     r.querySelector(".name")?.textContent?.includes("Hello"),
   );
@@ -135,32 +139,34 @@ test("completing a session shows results and persists progress", async () => {
 
 test("back button returns to the section mid-session", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   await userEvent.click(el("#btn-back"));
-  expect(hidden("#screen-section")).toBe(false);
+  await waitFor(() => !hidden("#screen-section"));
 });
 
 test("code blocks are highlighted by prism (token spans present)", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   expect(count("pre.code .token")).toBeGreaterThan(0);
 });
 
 test("credits page acknowledges ziglings and returns home", async () => {
   expect(hidden(".footer-note button")).toBe(false);
   await userEvent.click(el(".footer-note button"));
+  await waitFor(() => !hidden("#screen-credits"));
   expect(hidden("#screen-home")).toBe(true);
-  expect(hidden("#screen-credits")).toBe(false);
   const text = document.body.textContent ?? "";
   expect(text).toContain("ziglings");
   expect(text).toContain("Dave Gauer");
   await userEvent.click(el("#btn-back"));
-  expect(hidden("#screen-home")).toBe(false);
+  await waitFor(() => !hidden("#screen-home"));
 });
 
 test("settings screen adjusts code size, applies it, and persists", async () => {
   expect(hidden("#btn-settings")).toBe(false);
   await userEvent.click(el("#btn-settings"));
+  await waitFor(() => !hidden("#screen-settings"));
   expect(hidden("#screen-home")).toBe(true);
-  expect(hidden("#screen-settings")).toBe(false);
 
   const slider = el("#screen-settings input[aria-label='Code size']") as HTMLInputElement;
   slider.value = "10";
@@ -176,7 +182,7 @@ test("settings screen adjusts code size, applies it, and persists", async () => 
   await userEvent.click(el("#screen-settings .link-btn"));
   await waitFor(() => document.documentElement.style.getPropertyValue("--code-size") === "");
   await userEvent.click(el("#btn-back"));
-  expect(hidden("#screen-home")).toBe(false);
+  await waitFor(() => !hidden("#screen-home"));
 });
 
 function persisted(): Record<string, unknown> {
@@ -185,6 +191,7 @@ function persisted(): Record<string, unknown> {
 
 test("skip advances without recording a review and re-queues the card", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   const firstFront = el(".card-front").textContent;
   await userEvent.click(el("#btn-skip"));
   // the queue re-orders (current card moves to the end) but the index stays put
@@ -212,6 +219,7 @@ test("skip advances without recording a review and re-queues the card", async ()
 
 test("Review missed drills only the missed card", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   for (let i = 0; i < 4; i++) {
     if (hidden("#card-back")) {
       await userEvent.click(el("#card"));
@@ -236,6 +244,7 @@ test("Review missed drills only the missed card", async () => {
 
 test("empty queue reaches the all-caught-up done state", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   for (let i = 0; i < 4; i++) {
     if (hidden("#card-back")) {
       await userEvent.click(el("#card"));
@@ -262,6 +271,7 @@ test("empty queue reaches the all-caught-up done state", async () => {
 
 test("mid-session exit shows a resume badge and reopening resumes", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   await userEvent.click(el("#card"));
   await userEvent.click(el("#btn-known"));
   await waitFor(() => el("#tb-count").textContent === "2/4");
@@ -281,6 +291,7 @@ test("mid-session exit shows a resume badge and reopening resumes", async () => 
 
 test("deck detail lists per-card progress after grading", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   await userEvent.click(el("#card"));
   await userEvent.click(el("#btn-unknown"));
   await waitFor(() => el("#tb-count").textContent === "2/4");
@@ -313,6 +324,7 @@ test("deck detail lists per-card progress after grading", async () => {
 
 test("stats screen shows a per-day entry and a streak after grading", async () => {
   await openDeckNamed("Hello, Zig");
+  await waitFor(() => !hidden("#screen-review"));
   await userEvent.click(el("#card"));
   await userEvent.click(el("#btn-known"));
   await waitFor(() => el("#tb-count").textContent === "2/4");

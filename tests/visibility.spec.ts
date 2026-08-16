@@ -42,6 +42,10 @@ for (const viewport of VIEWPORTS) {
         const row = document.querySelectorAll(".deck-row")[d];
         if (!row) throw new Error("deck row not found");
         await userEvent.click(row);
+        // opening a deck is a view transition — wait for the review render (a
+        // stale #card from the previous session may still be in the DOM, so
+        // wait on the screen itself rather than its contents)
+        await waitFor(() => !hidden("#screen-review"));
 
         for (let c = 0; c < deckCards; c++) {
           const where = `section ${s + 1}/${sections.length} deck ${d + 1}/${decksInSection.length} card ${c + 1}/${deckCards}`;
