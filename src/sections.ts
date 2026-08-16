@@ -14,15 +14,9 @@ export const SECTIONS: Section[] = [
     blurb: "The Zig curriculum, inspired by ziglings",
   },
   {
-    id: "mojo",
-    title: "Mojo",
-    order: 2,
-    blurb: "The Mojo curriculum, built from mojo-quest",
-  },
-  {
     id: "urdu",
     title: "Urdu",
-    order: 3,
+    order: 2,
     blurb: "Everyday Urdu for beginners — common phrases for learning the language",
   },
 ];

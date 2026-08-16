@@ -1,8 +1,8 @@
 export type CardType = "output" | "fix" | "concept";
 
-export type SectionId = "prerequisites" | "zig" | "mojo" | "urdu";
+export type SectionId = "prerequisites" | "zig" | "urdu";
 
-export type Language = "zig" | "mojo";
+export type Language = "zig";
 
 export interface Section {
   id: SectionId;

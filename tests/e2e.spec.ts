@@ -48,12 +48,12 @@ async function openDeckNamed(name: string): Promise<void> {
 
 test("home lists sections, not decks", async () => {
   expect(count(".deck-row")).toBe(0);
-  expect(count(".section-card")).toBe(4);
+  expect(count(".section-card")).toBe(3);
   expect(el("#tb-title").textContent).toBe("Flash Cards");
   const heads = [...document.querySelectorAll(".section-card .section-title")].map(
     (n) => n.textContent,
   );
-  expect(heads).toEqual(["Prerequisites", "Zig", "Mojo", "Urdu"]);
+  expect(heads).toEqual(["Prerequisites", "Zig", "Urdu"]);
 });
 
 test("opening a section shows only that section's decks", async () => {

@@ -19,8 +19,8 @@ jobs:
 
       - run: vp install --frozen-lockfile
 
-      # Content validation compares decks against the ziglings and mojo-quest
-      # sources, which are not vendored. Clone them (and heal the ziglings).
+      # Content validation compares decks against the ziglings sources, which
+      # are not vendored. Clone them (and heal the ziglings).
       - name: Prepare ziglings sources
         run: |
           git clone --depth 1 https://codeberg.org/ziglings/exercises.git /tmp/ziglings
@@ -31,7 +31,6 @@ jobs:
             p="/tmp/ziglings/patches/patches/${n%.zig}.patch"
             if [ -f "$p" ]; then patch -s -i "$p" "/tmp/healed/$n"; fi
           done
-          git clone --depth 1 https://github.com/modular/mojo-quest.git /tmp/mojo-quest
 
       - name: Bumpy change check (PRs)
         if: github.event_name == 'pull_request'
@@ -47,4 +46,3 @@ jobs:
         env:
           ZIGLINGS_DIR: /tmp/ziglings
           ZIGLINGS_HEALED: /tmp/healed
-          MOJO_QUEST_DIR: /tmp/mojo-quest
