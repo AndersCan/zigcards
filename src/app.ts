@@ -240,8 +240,8 @@ function homeTemplate(ctx: AppContext): TemplateResult {
     <div class="hero">
       <h1>Flash Cards</h1>
       <p>
-        Flashcards for learning Zig, Mojo, and Urdu &mdash; with the memory basics JavaScript never
-        made you learn. Pick a topic to see its decks.
+        Flashcards for learning Zig and Urdu &mdash; with the memory basics JavaScript never made
+        you learn. Pick a topic to see its decks.
       </p>
     </div>
     ${orderedSections().map(
@@ -375,8 +375,6 @@ export function resetToHome(): void {
 
 const ZIGLINGS_URL = "https://codeberg.org/ziglings/exercises";
 const ZIG_URL = "https://ziglang.org";
-const MOJO_QUEST_URL = "https://github.com/modular/mojo-quest";
-const MOJO_URL = "https://mojolang.org";
 
 function creditsTemplate(): TemplateResult {
   return html`
@@ -418,33 +416,6 @@ function creditsTemplate(): TemplateResult {
         The memory-basics decks are original content written for this app, aimed at developers who
         have spent years in JavaScript and never had to think about addresses, the stack, or the
         heap. They are not part of ziglings.
-      </p>
-    </div>
-
-    <div class="credits-block">
-      <h3>mojo-quest</h3>
-      <p>
-        The <b>Mojo</b> section of this app is built from
-        <a href="${MOJO_QUEST_URL}" target="_blank" rel="noopener noreferrer">mojo-quest</a> &mdash;
-        a browser game by
-        <a href="${MOJO_URL}" target="_blank" rel="noopener noreferrer">Modular</a> that teaches
-        Mojo by fixing issues in a fictional robotics company. We use it for inspiration: the
-        tickets' teaching sequence and code are the source material for that deck.
-      </p>
-      <p>
-        mojo-quest is licensed under the
-        <a href="https://llvm.org/LICENSE.txt" target="_blank" rel="noopener noreferrer"
-          >Apache License v2.0 with LLVM Exceptions</a
-        >
-        &copy; 2026 Modular Inc.
-      </p>
-    </div>
-
-    <div class="credits-block">
-      <h3>Mojo</h3>
-      <p>
-        Mojo is a Python-superset systems language for AI/ML by Modular. Learn more at
-        <a href="${MOJO_URL}" target="_blank" rel="noopener noreferrer">mojolang.org</a>.
       </p>
     </div>
 

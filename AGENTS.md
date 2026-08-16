@@ -3,6 +3,12 @@
 Mobile-first flashcard app for learning Zig, built from ziglings. Content is
 data in `decks/*.ts`; correctness is enforced by tooling, not faith.
 
+## Domain vocabulary
+
+The app's domain language is defined in `VOCABULARY.md` (Section → Deck →
+Card, plus the mantaq event names). Use those exact terms in code, decks, UI,
+and docs.
+
 <!--VITE PLUS START-->
 
 # Using Vite+, the Unified Toolchain for the Web

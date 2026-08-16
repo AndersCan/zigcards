@@ -15,7 +15,7 @@ const VIEWPORTS = [
   { width: 1440, height: 900 }, // desktop
 ];
 
-const SECTION_IDS = ["prerequisites", "zig", "mojo", "urdu"];
+const SECTION_IDS = ["prerequisites", "zig", "urdu"];
 
 beforeAll(bootstrapApp);
 beforeEach(resetUi);
@@ -118,8 +118,6 @@ function sectionTitle(id: string): string {
       return "Prerequisites";
     case "zig":
       return "Zig";
-    case "mojo":
-      return "Mojo";
     case "urdu":
       return "Urdu";
     default:
